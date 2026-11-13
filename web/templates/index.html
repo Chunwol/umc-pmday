@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UMC PM Day · 18개 조 선착순 배정</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ECFDF8',
+              100: '#D1FAE9',
+              200: '#A7F3D7',
+              500: '#10B981',
+              600: '#059669',
+              700: '#047857',
+            },
+            tealgrey: {
+              50: '#F8FAFC',
+              75: '#F1F5F9',
+              100: '#E2E8F0',
+              500: '#64748B',
+              800: '#1E293B',
+              900: '#0F172A',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: #F6F8FA;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+    }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .card-shadow { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03); }
+    .card-shadow:hover { box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-sm">
+          UMC
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900">UMC PM Day 선착순 조 배정</h1>
+            <span id="liveBadge" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              LIVE
+            </span>
+          </div>
+          <p class="hidden sm:block text-xs text-slate-500">18개 프로젝트 토론 조 · 파트 무관 선착순 신청</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="openAdminModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          운영진 설정
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 space-y-5">
+
+    <!-- Scheduled Open Countdown / Server Clock Banner -->
+    <section id="countdownBanner" class="hidden rounded-2xl border p-4 sm:p-5 transition-all"></section>
+
+    <!-- KPI Summary Row -->
+    <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 card-shadow">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500">
+          <span>전체 PE 신청 현황</span>
+          <span id="kpiPercent" class="tabular-nums font-semibold text-emerald-600">0%</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="kpiApplied" class="tabular-nums text-2xl font-bold text-slate-900">0</span>
+          <span class="text-sm font-medium text-slate-400">/ <span id="kpiTotalQuota" class="tabular-nums">87</span>명</span>
+        </div>
+        <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div id="kpiProgressBar" class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 card-shadow">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500">
+          <span>선착순 정원 배분 방식</span>
+          <span id="kpiHighBadge" class="rounded-full bg-teal-50 border border-teal-200/70 px-2 py-0.5 text-[11px] font-semibold text-teal-700">잔여 -조</span>
+        </div>
+        <div id="kpiRuleMain" class="mt-2 text-sm font-bold text-slate-900 leading-snug">-</div>
+        <p id="kpiRuleSub" class="mt-1 text-xs text-slate-500">-</p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 card-shadow">
+        <div class="text-xs font-medium text-slate-500">18개 조 모집 상태</div>
+        <div class="mt-2 flex items-baseline gap-3">
+          <div>
+            <span id="kpiOpenGroups" class="tabular-nums text-2xl font-bold text-emerald-600">18</span>
+            <span class="text-xs font-medium text-slate-500">조 모집 중</span>
+          </div>
+          <span class="text-slate-300">|</span>
+          <div>
+            <span id="kpiClosedGroups" class="tabular-nums text-2xl font-bold text-slate-400">0</span>
+            <span class="text-xs font-medium text-slate-500">조 마감</span>
+          </div>
+        </div>
+        <p class="mt-1.5 text-xs text-slate-500">서버 시각 <span id="serverClock" class="tabular-nums font-semibold text-slate-700">--:--:--</span></p>
+      </div>
+
+      <div id="myStatusCard" class="rounded-2xl border border-slate-200/80 bg-white p-4 card-shadow">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500">
+          <span>내 신청 상태</span>
+          <span id="myStatusBadge" class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">미신청</span>
+        </div>
+        <div id="myStatusBody" class="mt-2 text-sm font-semibold text-slate-800">아래에 내 정보를 입력하고 희망 조를 선택하세요.</div>
+        <div id="myStatusActions" class="mt-2 hidden">
+          <button onclick="openCancelModal()" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors">
+            신청 취소하고 다시 고르기
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sticky Applicant Form -->
+    <section class="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 card-shadow">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold">1</span>
+            내 신청 정보 입력 <span class="text-xs font-normal text-slate-500">(오픈 전 미리 작성해 두면 정각에 원클릭 신청 가능)</span>
+          </h2>
+        </div>
+        <span class="text-[11px] text-slate-500">닉네임 입력 시 설문 명단 자동완성 · 중복 신청 차단</span>
+      </div>
+
+      <div class="mt-3.5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="relative">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">닉네임 <span class="text-rose-500">*</span></label>
+          <input id="inputNickname" type="text" autocomplete="off" placeholder="닉네임 입력"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          <div id="autocompleteBox" class="hidden absolute left-0 right-0 top-full z-40 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl divide-y divide-slate-100"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">이름 <span class="text-rose-500">*</span></label>
+          <input id="inputName" type="text" placeholder="이름 입력"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">학교 <span class="text-rose-500">*</span></label>
+          <input id="inputSchool" list="schoolOptions" type="text" placeholder="학교 입력"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          <datalist id="schoolOptions">
+            <option value="동양미래대"></option>
+            <option value="숭실대"></option>
+            <option value="인하대"></option>
+            <option value="이화여대"></option>
+            <option value="한양대 ERICA"></option>
+          </datalist>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">전화번호 <span class="text-rose-500">*</span></label>
+          <input id="inputPhone" type="tel" placeholder="010-1234-5678"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm tabular-nums text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">파트 <span class="text-rose-500">*</span></label>
+          <div class="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1">
+            <button type="button" id="partBtnWeb" onclick="setPart('PE(WEB)')"
+              class="rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm">PE(WEB)</button>
+            <button type="button" id="partBtnMobile" onclick="setPart('PE(Mobile)')"
+              class="rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900">PE(Mobile)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span>파트 제한 없이 1조~18조 모든 프로젝트에 신청할 수 있습니다.</span>
+        <button type="button" onclick="clearMyForm()" class="text-slate-400 hover:text-slate-700 underline">입력 초기화</button>
+      </div>
+    </section>
+
+    <!-- Controls & Admin-Only Tab Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="adminTabBar" class="hidden inline-flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm self-start">
+        <button id="tabBtnGroups" onclick="switchTab('groups')" class="rounded-lg px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white transition-all">
+          18개 조 신청 화면
+        </button>
+        <button id="tabBtnLogs" onclick="switchTab('logs')" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <span>클릭 순번 로그</span>
+          <span id="logCountBadge" class="tabular-nums rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">0</span>
+        </button>
+        <button id="tabBtnBoard" onclick="switchTab('board')" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+          전체 편성표 · 미신청자
+        </button>
+        <button type="button" onclick="downloadAdminCSV()" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-all">
+          편성표 CSV
+        </button>
+        <button type="button" onclick="lockAdminMode()" class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-all">
+          운영자 잠금
+        </button>
+      </div>
+
+      <div id="groupFilterControls" class="flex flex-wrap items-center justify-between gap-2 w-full sm:w-auto sm:ml-auto">
+        <div class="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
+          <button onclick="setFilter('all')" id="fltAll" class="rounded-lg px-2.5 py-1.5 font-semibold bg-emerald-50 text-emerald-700">전체 (18)</button>
+          <button onclick="setFilter('open')" id="fltOpen" class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-600 hover:text-slate-900">모집 중만</button>
+          <button onclick="setFilter('web')" id="fltWeb" class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-600 hover:text-slate-900">1~12조</button>
+          <button onclick="setFilter('mobile')" id="fltMobile" class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-600 hover:text-slate-900">13~18조</button>
+        </div>
+        <input id="searchInput" type="text" placeholder="프로젝트·PM 검색..." oninput="renderGroups()"
+          class="w-44 sm:w-52 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none" />
+      </div>
+    </div>
+
+    <!-- TAB 1: Project Cards -->
+    <section id="tabGroups">
+      <ul id="projectList" class="flex flex-col gap-3"></ul>
+    </section>
+
+    <!-- TAB 2: Microsecond Click Sequence Logs -->
+    <section id="tabLogs" class="hidden rounded-2xl border border-slate-200/90 bg-white overflow-hidden card-shadow">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">실시간 버튼 클릭 순번 로그 (선착순 검증)</h3>
+          <p class="text-xs text-slate-500 mt-0.5">서버 도착 즉시 부여된 순번(#)과 마이크로초(µs) 시각 기준으로 직렬 큐가 순서대로 처리합니다.</p>
+        </div>
+        <div class="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
+          <button onclick="setLogFilter('all')" id="logFltAll" class="rounded-lg px-2.5 py-1 font-semibold bg-white text-slate-900 shadow-sm">전체</button>
+          <button onclick="setLogFilter('SUCCESS')" id="logFltSuccess" class="rounded-lg px-2.5 py-1 font-semibold text-slate-600">성공만</button>
+          <button onclick="setLogFilter('FAIL')" id="logFltFail" class="rounded-lg px-2.5 py-1 font-semibold text-slate-600">마감·중복·오픈전</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-100">
+            <tr>
+              <th class="px-4 py-3 font-semibold">순번</th>
+              <th class="px-4 py-3 font-semibold">클릭 시각 (서버 µs)</th>
+              <th class="px-4 py-3 font-semibold">신청자 (닉네임/이름)</th>
+              <th class="px-4 py-3 font-semibold">학교 · 파트</th>
+              <th class="px-4 py-3 font-semibold">선택 조</th>
+              <th class="px-4 py-3 font-semibold">처리 결과</th>
+              <th class="px-4 py-3 font-semibold">상세 메시지</th>
+            </tr>
+          </thead>
+          <tbody id="clickLogBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: Full Overview Board & Unapplied Challengers -->
+    <section id="tabBoard" class="hidden space-y-5">
+      <div class="rounded-2xl border border-slate-200/90 bg-white p-5 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">18개 조 한눈에 보기</h3>
+            <p class="text-xs text-slate-500">PM + 배정된 PE 개발자 현황</p>
+          </div>
+          <button type="button" onclick="downloadAdminCSV()" class="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500">편성표 CSV 다운로드</button>
+        </div>
+        <div id="boardGrid" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200/90 bg-white p-5 card-shadow">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">참석 대상 PE 중 미신청자 (<span id="unappliedCount" class="tabular-nums text-rose-600">0</span>명)</h3>
+            <p class="text-xs text-slate-500">활동 PE 91명(Web 60 · Mobile 31) 중 불참 4명을 제외한 참석 대상 87명(정시 84명 + 늦참 3명) 기준 미신청자입니다.</p>
+          </div>
+        </div>
+        <div id="unappliedList" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Apply Confirm Modal -->
+  <div id="applyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span class="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700" id="applyModalGroupBadge">-조</span>
+          <h3 class="mt-1.5 text-base font-bold text-slate-900" id="applyModalTitle">-</h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="applyModalMeta">-</p>
+        </div>
+        <button type="button" onclick="closeApplyModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs font-semibold">닫기</button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="relative">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">닉네임 <span class="text-rose-500">*</span></label>
+            <input id="modalInputNickname" type="text" autocomplete="off" placeholder="닉네임 입력"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            <div id="modalAutocompleteBox" class="hidden absolute left-0 right-0 top-full z-40 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl divide-y divide-slate-100"></div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">이름 <span class="text-rose-500">*</span></label>
+            <input id="modalInputName" type="text" placeholder="이름 입력"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">학교 <span class="text-rose-500">*</span></label>
+            <input id="modalInputSchool" list="schoolOptions" type="text" placeholder="학교 입력"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">전화번호 <span class="text-rose-500">*</span></label>
+            <input id="modalInputPhone" type="tel" placeholder="010-1234-5678"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm tabular-nums text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">파트 <span class="text-rose-500">*</span></label>
+          <div class="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1">
+            <button type="button" id="modalPartBtnWeb" onclick="setModalPart('PE(WEB)')"
+              class="rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm">PE(WEB)</button>
+            <button type="button" id="modalPartBtnMobile" onclick="setModalPart('PE(Mobile)')"
+              class="rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900">PE(Mobile)</button>
+          </div>
+        </div>
+
+        <p id="applyModalError" class="hidden text-xs font-medium text-rose-600"></p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+        <button type="button" onclick="closeApplyModal()" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">취소</button>
+        <button type="button" id="confirmApplyBtn" onclick="confirmApply()" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 shadow-sm">선착순 신청 확정</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Confirm Modal -->
+  <div id="cancelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span class="inline-flex items-center rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[11px] font-bold text-rose-700">신청 취소</span>
+          <h3 class="mt-1.5 text-base font-bold text-slate-900">배정된 조 신청 취소</h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="cancelModalInfo">취소 즉시 다른 참여자가 해당 자리를 신청할 수 있습니다.</p>
+        </div>
+        <button type="button" onclick="closeCancelModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs font-semibold">닫기</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">신청한 닉네임</label>
+          <input id="cancelInputNickname" type="text" placeholder="닉네임"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:bg-white focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">본인 확인 전화번호 (또는 뒷 4자리)</label>
+          <input id="cancelInputPhone" type="tel" placeholder="010-1234-5678 또는 5678"
+            onkeydown="if(event.key==='Enter') confirmCancel()"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm tabular-nums text-slate-900 focus:border-rose-500 focus:bg-white focus:outline-none" />
+        </div>
+        <p id="cancelModalError" class="hidden text-xs font-medium text-rose-600"></p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+        <button type="button" onclick="closeCancelModal()" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">유지하기</button>
+        <button type="button" id="confirmCancelBtn" onclick="confirmCancel()" class="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-500 shadow-sm">신청 취소 확정</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Settings Modal (2-Step Auth Lock -> Settings) -->
+  <div id="adminModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">운영진 설정</h3>
+          <p class="text-xs text-slate-500">정원·오픈 시각 제어 및 클릭 로그·편성표 관리는 운영자 전용입니다.</p>
+        </div>
+        <button type="button" onclick="closeAdminModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs font-semibold">닫기</button>
+      </div>
+
+      <!-- Step 1: Password Gate -->
+      <div id="adminLockView" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">운영진 비밀번호</label>
+          <input id="adminPin" type="password" autocomplete="off" placeholder="비밀번호를 입력하세요"
+            onkeydown="if(event.key==='Enter') unlockAdminModal()"
+            class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-slate-900 focus:outline-none" />
+          <p id="adminAuthError" class="hidden mt-1.5 text-xs font-medium text-rose-600"></p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeAdminModal()" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">닫기</button>
+          <button type="button" onclick="unlockAdminModal()" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800">확인</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Unlocked Admin Panel -->
+      <div id="adminPanelView" class="hidden space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
+          <div class="text-[11px] font-semibold text-slate-500">운영자 전용 조회 · 내보내기</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="switchTab('logs'); closeAdminModal();" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+              클릭 순번 로그 보기
+            </button>
+            <button type="button" onclick="switchTab('board'); closeAdminModal();" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+              전체 편성표 · 미신청자 보기
+            </button>
+            <button type="button" onclick="downloadAdminCSV()" class="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500">
+              편성표 CSV 다운로드
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-semibold text-slate-700">전체 PE 목표 인원 (명)</label>
+            <div class="flex flex-wrap gap-1">
+              <button type="button" onclick="setAdminQuotaPreset(87)" class="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">참석총원 87명</button>
+              <button type="button" onclick="setAdminQuotaPreset(84)" class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200">정시만 84명</button>
+              <button type="button" onclick="setAdminQuotaPreset(91)" class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200">활동PE 91명</button>
+              <button type="button" onclick="setAdminQuotaPreset(72)" class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200">72명</button>
+            </div>
+          </div>
+          <input id="adminTotalQuota" type="number" min="1" max="300" oninput="updateAdminPreview()"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm tabular-nums font-semibold focus:border-emerald-500 focus:outline-none" />
+          <p id="adminQuotaPreview" class="mt-1.5 rounded-xl bg-slate-50 border border-slate-200/70 px-3 py-2 text-xs text-slate-700">-</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">배부 알고리즘</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-start gap-2 rounded-xl border border-slate-200 p-3 cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="distMode" value="auto_even" onchange="updateAdminPreview()" class="mt-0.5 accent-emerald-600" />
+              <div>
+                <div class="text-xs font-bold text-slate-900">18조 균등 우선 배부</div>
+                <div class="text-[11px] text-slate-500">총원을 18조로 나눈 몫~몫+1명, 빨리 차는 조 우선 +1</div>
+              </div>
+            </label>
+            <label class="flex items-start gap-2 rounded-xl border border-slate-200 p-3 cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="distMode" value="fixed_4_5" onchange="updateAdminPreview()" class="mt-0.5 accent-emerald-600" />
+              <div>
+                <div class="text-xs font-bold text-slate-900">5명 ~ 4명 우선 배부</div>
+                <div class="text-[11px] text-slate-500">빨리 차는 조 5명, 나머지 조 4명 (72~90명 구간)</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">선착순 오픈 시각 설정</label>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button type="button" onclick="applyQuickOpen(-1)" class="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500">지금 즉시 오픈</button>
+            <button type="button" onclick="applyQuickOpen(10)" class="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">10초 뒤 오픈</button>
+            <button type="button" onclick="applyQuickOpen(60)" class="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">1분 뒤 오픈</button>
+            <button type="button" onclick="applyQuickOpen(300)" class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">5분 뒤 오픈</button>
+          </div>
+          <input id="adminOpenAt" type="datetime-local" step="1"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs tabular-nums focus:border-emerald-500 focus:outline-none" />
+        </div>
+
+        <label class="flex items-center justify-between rounded-xl border border-slate-200 px-3.5 py-2.5 cursor-pointer">
+          <div>
+            <div class="text-xs font-bold text-slate-900">신청 일시 중지 (긴급 잠금)</div>
+            <div class="text-[11px] text-slate-500">켜두면 오픈 시각과 무관하게 신청을 막습니다.</div>
+          </div>
+          <input id="adminPaused" type="checkbox" class="h-4 w-4 accent-rose-600" />
+        </label>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
+          <div class="flex gap-1.5">
+            <button type="button" onclick="resetAllApplications()" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100">
+              전체 신청/로그 초기화
+            </button>
+            <button type="button" onclick="lockAdminMode(); closeAdminModal();" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+              운영자 잠금
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeAdminModal()" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">닫기</button>
+            <button type="button" onclick="saveAdminSettings()" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800">설정 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let appState = null;
+    let challengers = [];
+    let serverOffsetMs = 0;
+    let currentTab = 'groups';
+    let currentFilter = 'all';
+    let currentLogFilter = 'all';
+    let selectedPart = localStorage.getItem('umc_part') || 'PE(WEB)';
+    let adminAuthenticated = false;
+    let verifiedAdminPin = '';
+    let applyingLock = false;
+    let pendingApplyProjectId = null;
+    let modalSelectedPart = 'PE(WEB)';
+
+    const elNick = document.getElementById('inputNickname');
+    const elName = document.getElementById('inputName');
+    const elSchool = document.getElementById('inputSchool');
+    const elPhone = document.getElementById('inputPhone');
+    const elAutoBox = document.getElementById('autocompleteBox');
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function normalizeNick(s) {
+      return (s || '').trim().replace(/\s+/g, '').toLowerCase();
+    }
+
+    function formatPhone(val) {
+      const d = (val || '').replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 3) return d;
+      if (d.length <= 7) return d.slice(0, 3) + '-' + d.slice(3);
+      return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+    }
+
+    function loadSavedForm() {
+      elNick.value = localStorage.getItem('umc_nick') || '';
+      elName.value = localStorage.getItem('umc_name') || '';
+      elSchool.value = localStorage.getItem('umc_school') || '';
+      elPhone.value = localStorage.getItem('umc_phone') || '';
+      setPart(localStorage.getItem('umc_part') || 'PE(WEB)', false);
+    }
+
+    function saveForm() {
+      localStorage.setItem('umc_nick', elNick.value);
+      localStorage.setItem('umc_name', elName.value);
+      localStorage.setItem('umc_school', elSchool.value);
+      localStorage.setItem('umc_phone', elPhone.value);
+      localStorage.setItem('umc_part', selectedPart);
+      renderMyStatus();
+      if (appState) renderGroups();
+    }
+
+    function clearMyForm() {
+      elNick.value = '';
+      elName.value = '';
+      elSchool.value = '';
+      elPhone.value = '';
+      saveForm();
+    }
+
+    function setPart(part, persist = true) {
+      selectedPart = part;
+      const webBtn = document.getElementById('partBtnWeb');
+      const mobBtn = document.getElementById('partBtnMobile');
+      if (part === 'PE(WEB)') {
+        webBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm';
+        mobBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900';
+      } else {
+        mobBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm';
+        webBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900';
+      }
+      if (persist) saveForm();
+    }
+
+    elNick.addEventListener('input', () => {
+      saveForm();
+      showAutocomplete(elNick.value);
+    });
+    elNick.addEventListener('focus', () => {
+      if (elNick.value.trim()) showAutocomplete(elNick.value);
+    });
+    elName.addEventListener('input', saveForm);
+    elSchool.addEventListener('input', saveForm);
+    elPhone.addEventListener('input', () => {
+      elPhone.value = formatPhone(elPhone.value);
+      saveForm();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!elAutoBox.contains(e.target) && e.target !== elNick) {
+        elAutoBox.classList.add('hidden');
+      }
+    });
+
+    function showAutocomplete(query) {
+      const q = query.trim().toLowerCase();
+      if (!q || challengers.length === 0) {
+        elAutoBox.classList.add('hidden');
+        return;
+      }
+      const matches = challengers.filter(c =>
+        c.nickname.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+      ).slice(0, 8);
+      if (matches.length === 0) {
+        elAutoBox.classList.add('hidden');
+        return;
+      }
+      elAutoBox.innerHTML = matches.map((c, idx) => `
+        <button type="button" onclick="pickChallenger(${c.id})"
+          class="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center justify-between gap-2 transition-colors">
+          <div>
+            <div class="text-xs font-bold text-slate-900">${escapeHtml(c.nickname)} <span class="font-medium text-slate-500">(${escapeHtml(c.name)})</span></div>
+            <div class="text-[11px] text-slate-500">${escapeHtml(c.school)} · ${escapeHtml(c.part)}</div>
+          </div>
+          <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.attendance === '불참' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-700'}">${escapeHtml(c.attendance)}</span>
+        </button>
+      `).join('');
+      elAutoBox.classList.remove('hidden');
+    }
+
+    function pickChallenger(id) {
+      const c = challengers.find(x => x.id === id);
+      if (!c) return;
+      elNick.value = c.nickname;
+      elName.value = c.name;
+      elSchool.value = c.school;
+      elPhone.value = c.phone;
+      setPart(c.part, false);
+      elAutoBox.classList.add('hidden');
+      saveForm();
+      showToast(`${c.nickname}(${c.name})님의 정보가 자동 입력되었습니다.`, 'info');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const colors = {
+        success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+        error: 'border-rose-200 bg-rose-50 text-rose-900',
+        info: 'border-slate-200 bg-white text-slate-900',
+      };
+      const dotClass = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-rose-500' : 'bg-slate-400';
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto rounded-2xl border px-4 py-3 text-xs font-semibold shadow-lg transition-all ${colors[type] || colors.info}`;
+      el.innerHTML = `<div class="flex items-start gap-2.5"><span class="mt-1 h-2 w-2 shrink-0 rounded-full ${dotClass}"></span><span>${escapeHtml(message)}</span></div>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 3600);
+    }
+
+    function switchTab(tab) {
+      if ((tab === 'logs' || tab === 'board') && !adminAuthenticated) {
+        openAdminModal();
+        return;
+      }
+      currentTab = tab;
+      document.getElementById('tabGroups').classList.toggle('hidden', tab !== 'groups');
+      document.getElementById('tabLogs').classList.toggle('hidden', tab !== 'logs' || !adminAuthenticated);
+      document.getElementById('tabBoard').classList.toggle('hidden', tab !== 'board' || !adminAuthenticated);
+      document.getElementById('groupFilterControls').classList.toggle('hidden', tab !== 'groups');
+
+      const activeCls = 'rounded-lg px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white transition-all';
+      const idleCls = 'rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all';
+      document.getElementById('tabBtnGroups').className = tab === 'groups' ? activeCls : idleCls;
+      document.getElementById('tabBtnLogs').className = (tab === 'logs' ? activeCls : idleCls) + ' flex items-center gap-1.5';
+      document.getElementById('tabBtnBoard').className = tab === 'board' ? activeCls : idleCls;
+    }
+
+    function lockAdminMode() {
+      adminAuthenticated = false;
+      verifiedAdminPin = '';
+      document.getElementById('adminTabBar').classList.add('hidden');
+      switchTab('groups');
+      showToast('운영자 모드가 잠겼습니다.', 'info');
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      const map = { all: 'fltAll', open: 'fltOpen', web: 'fltWeb', mobile: 'fltMobile' };
+      Object.entries(map).forEach(([k, id]) => {
+        document.getElementById(id).className = k === f
+          ? 'rounded-lg px-2.5 py-1.5 font-semibold bg-emerald-50 text-emerald-700'
+          : 'rounded-lg px-2.5 py-1.5 font-semibold text-slate-600 hover:text-slate-900';
+      });
+      renderGroups();
+    }
+
+    function setLogFilter(f) {
+      currentLogFilter = f;
+      const map = { all: 'logFltAll', SUCCESS: 'logFltSuccess', FAIL: 'logFltFail' };
+      Object.entries(map).forEach(([k, id]) => {
+        document.getElementById(id).className = k === f
+          ? 'rounded-lg px-2.5 py-1 font-semibold bg-white text-slate-900 shadow-sm'
+          : 'rounded-lg px-2.5 py-1 font-semibold text-slate-600';
+      });
+      renderLogs();
+    }
+
+    function isSameApplicant(aNick, aName, bNick, bName) {
+      const n1 = normalizeNick(aNick);
+      const n2 = normalizeNick(bNick);
+      if (!n1 || n1 !== n2) return false;
+      const nm1 = normalizeNick(aName);
+      const nm2 = normalizeNick(bName);
+      if (nm1 && nm2) return nm1 === nm2;
+      return true;
+    }
+
+    function findMyAssignment() {
+      if (!appState) return null;
+      const nick = elNick.value;
+      const name = elName.value;
+      if (!normalizeNick(nick)) return null;
+      for (const p of appState.projects) {
+        const hit = p.members.find(m => isSameApplicant(m.nickname, m.name, nick, name));
+        if (hit) return { project: p, member: hit };
+      }
+      return null;
+    }
+
+    function isCurrentlyOpen() {
+      if (!appState) return false;
+      if (appState.settings.is_paused) return false;
+      const nowServerMs = Date.now() + serverOffsetMs;
+      return nowServerMs >= appState.open_at_ms;
+    }
+
+    function renderKPIs() {
+      if (!appState) return;
+      const s = appState.summary;
+      const pct = s.total_quota > 0 ? Math.min(100, Math.round((s.total_applied / s.total_quota) * 100)) : 0;
+      document.getElementById('kpiApplied').textContent = s.total_applied;
+      document.getElementById('kpiTotalQuota').textContent = s.total_quota;
+      document.getElementById('kpiPercent').textContent = `${pct}%`;
+      document.getElementById('kpiProgressBar').style.width = `${pct}%`;
+
+      if (s.high_cap === s.base_cap) {
+        document.getElementById('kpiHighBadge').textContent = `균등 ${s.base_cap}명`;
+        document.getElementById('kpiRuleMain').textContent = `18개 조 모두 최대 ${s.base_cap}명`;
+        document.getElementById('kpiRuleSub').textContent = `전체 목표 ${s.total_quota}명 배부`;
+      } else {
+        const baseGroups = 18 - s.allowed_high_groups;
+        document.getElementById('kpiHighBadge').textContent = `${s.high_cap}명 잔여 ${s.remaining_high_slots}조`;
+        document.getElementById('kpiRuleMain').textContent = `빨리 차는 ${s.allowed_high_groups}개 조 ${s.high_cap}명 · 나머지 ${baseGroups}개 조 ${s.base_cap}명`;
+        document.getElementById('kpiRuleSub').textContent = s.remaining_high_slots > 0
+          ? `선착순 ${s.remaining_high_slots}개 조는 ${s.high_cap}명까지 신청 가능`
+          : `${s.high_cap}명 조가 모두 마감되어 나머지 조는 ${s.base_cap}명 정원으로 확정됨`;
+      }
+
+      document.getElementById('kpiOpenGroups').textContent = s.open_groups_count;
+      document.getElementById('kpiClosedGroups').textContent = s.closed_groups_count;
+      document.getElementById('logCountBadge').textContent = appState.recent_logs.length;
+    }
+
+    function renderMyStatus() {
+      const badge = document.getElementById('myStatusBadge');
+      const body = document.getElementById('myStatusBody');
+      const actions = document.getElementById('myStatusActions');
+      const mine = findMyAssignment();
+      if (mine) {
+        badge.className = 'rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700';
+        badge.textContent = `배정 완료 (#${mine.member.arrival_seq})`;
+        body.innerHTML = `<span class="text-emerald-700">${mine.project.group_no}조 · ${escapeHtml(mine.project.title)}</span><div class="text-[11px] font-normal text-slate-500 mt-0.5 tabular-nums">클릭 시각 ${escapeHtml(mine.member.clicked_text)}</div>`;
+        actions.classList.remove('hidden');
+      } else {
+        badge.className = 'rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600';
+        badge.textContent = '미신청';
+        body.textContent = elNick.value.trim()
+          ? `${elNick.value.trim()}님, 원하는 조의 [선착순 신청]을 눌러주세요.`
+          : '아래에 내 정보를 입력하고 희망 조를 선택하세요.';
+        actions.classList.add('hidden');
+      }
+    }
+
+    function renderGroups() {
+      if (!appState) return;
+      const listEl = document.getElementById('projectList');
+      const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      const mine = findMyAssignment();
+      const openNow = isCurrentlyOpen();
+
+      const filtered = appState.projects.filter(p => {
+        if (currentFilter === 'open' && p.is_full) return false;
+        if (currentFilter === 'web' && p.group_no > 12) return false;
+        if (currentFilter === 'mobile' && p.group_no <= 12) return false;
+        if (q) {
+          const hay = `${p.group_no}조 ${p.title} ${p.pm_nickname} ${p.pm_name} ${p.pm_school}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<li class="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">조건에 맞는 프로젝트 조가 없습니다.</li>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(p => {
+        const isMyGroup = mine && mine.project.id === p.id;
+        const pct = p.effective_capacity > 0 ? Math.min(100, Math.round((p.current_count / p.effective_capacity) * 100)) : 100;
+
+        let tagClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+        let dotClass = 'bg-emerald-500';
+        let barClass = 'bg-emerald-500';
+        if (p.is_full) {
+          tagClass = 'bg-rose-50 text-rose-700 border-rose-200/80';
+          dotClass = 'bg-rose-500';
+          barClass = 'bg-rose-400';
+        } else if (p.status_label === '마감 임박') {
+          tagClass = 'bg-amber-50 text-amber-700 border-amber-200/80';
+          dotClass = 'bg-amber-500';
+          barClass = 'bg-amber-500';
+        }
+
+        let actionBtnHtml = '';
+        if (isMyGroup) {
+          actionBtnHtml = `<button type="button" onclick="openCancelModal()" class="shrink-0 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors">내 배정 조 (취소)</button>`;
+        } else if (!openNow) {
+          actionBtnHtml = `<button type="button" disabled class="shrink-0 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs font-bold text-amber-700 cursor-not-allowed">오픈 대기 중</button>`;
+        } else if (p.is_full) {
+          actionBtnHtml = `<button type="button" disabled class="shrink-0 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-400 cursor-not-allowed">마감 완료</button>`;
+        } else if (mine) {
+          actionBtnHtml = `<button type="button" disabled title="이미 다른 조에 신청되어 있습니다" class="shrink-0 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-400 cursor-not-allowed">이미 배정됨</button>`;
+        } else {
+          actionBtnHtml = `<button type="button" onclick="openApplyModal(${p.id})" class="shrink-0 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 active:scale-[0.98] transition-all">선착순 신청</button>`;
+        }
+
+        const membersHtml = p.members.length > 0
+          ? p.members.map(m => `
+              <span class="inline-flex items-center gap-1 rounded-lg border ${isSameApplicant(m.nickname, m.name, elNick.value, elName.value) ? 'border-emerald-300 bg-emerald-50 text-emerald-800 font-bold' : 'border-slate-200 bg-slate-50 text-slate-700'} px-2 py-0.5 text-[11px]">
+                <span class="tabular-nums text-[10px] text-slate-400 font-semibold">#${m.arrival_seq}</span>
+                <span>${escapeHtml(m.nickname)}</span>
+                <span class="text-slate-400">· ${m.part === 'PE(Mobile)' ? 'Mob' : 'Web'}</span>
+              </span>
+            `).join('')
+          : `<span class="text-[11px] text-slate-400">아직 신청한 PE 개발자가 없습니다. 첫 번째로 참여해 보세요!</span>`;
+
+        return `
+          <li>
+            <article class="flex flex-col sm:flex-row w-full sm:items-center gap-4 sm:gap-6 rounded-2xl border ${isMyGroup ? 'border-emerald-400 ring-2 ring-emerald-500/20' : 'border-slate-200/90'} bg-white p-3 sm:pr-5 card-shadow transition-all">
+              <div class="relative h-44 sm:h-40 w-full sm:w-72 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                <img src="${escapeHtml(p.thumbnail_url)}" alt="${escapeHtml(p.title)}" class="h-full w-full object-cover" loading="lazy" />
+                <div class="absolute left-2.5 top-2.5 flex items-center gap-1.5">
+                  <span class="rounded-lg bg-slate-900/80 backdrop-blur-xs px-2.5 py-1 text-xs font-bold text-white shadow-sm">${p.group_no}조</span>
+                  <span class="rounded-lg bg-white/90 backdrop-blur-xs px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-xs">${p.original_part === 'PE(Mobile)' ? 'Mobile 기획' : 'Web 기획'}</span>
+                </div>
+              </div>
+
+              <div class="flex min-w-0 flex-1 flex-col gap-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <img src="${escapeHtml(p.logo_url)}" alt="" class="h-7 w-7 shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-50" />
+                      <h3 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900">${escapeHtml(p.title)}</h3>
+                      <span class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">승인 완료</span>
+                    </div>
+                    <p class="mt-1 text-xs font-medium text-slate-500">PM ${escapeHtml(p.pm_nickname)}/${escapeHtml(p.pm_name)} · ${escapeHtml(p.pm_school)}</p>
+                  </div>
+                  ${actionBtnHtml}
+                </div>
+
+                <!-- PE Quota Bar -->
+                <div class="rounded-xl bg-slate-50/80 border border-slate-100 px-3.5 py-2.5 space-y-1.5">
+                  <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                      <span class="font-semibold text-slate-800">PE 개발자 모집</span>
+                      <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tagClass}">
+                        <span class="h-1.5 w-1.5 rounded-full ${dotClass}"></span>
+                        ${escapeHtml(p.status_label)}
+                      </span>
+                    </div>
+                    <div class="tabular-nums text-xs font-bold text-slate-900">
+                      ${p.current_count} <span class="text-slate-400 font-normal">/ ${p.effective_capacity}명</span>
+                    </div>
+                  </div>
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70">
+                    <div class="h-full rounded-full ${barClass} transition-all duration-300" style="width: ${pct}%"></div>
+                  </div>
+                </div>
+
+                <!-- Enrolled Members -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                  ${membersHtml}
+                </div>
+              </div>
+            </article>
+          </li>
+        `;
+      }).join('');
+    }
+
+    function renderLogs() {
+      if (!appState) return;
+      const tbody = document.getElementById('clickLogBody');
+      const logs = appState.recent_logs.filter(l => {
+        if (currentLogFilter === 'SUCCESS') return l.status === 'SUCCESS';
+        if (currentLogFilter === 'FAIL') return l.status !== 'SUCCESS';
+        return true;
+      });
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-400">아직 기록된 클릭 로그가 없습니다.</td></tr>`;
+        return;
+      }
+      const badgeMap = {
+        SUCCESS: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        FULL: 'bg-rose-50 text-rose-700 border-rose-200',
+        DUPLICATE: 'bg-amber-50 text-amber-800 border-amber-200',
+        BEFORE_OPEN: 'bg-slate-100 text-slate-700 border-slate-200',
+        CLOSED: 'bg-slate-100 text-slate-700 border-slate-200',
+        CANCELLED: 'bg-slate-100 text-slate-600 border-slate-200',
+      };
+      const labelMap = {
+        SUCCESS: '배정 성공',
+        FULL: '정원 마감',
+        DUPLICATE: '중복 차단',
+        BEFORE_OPEN: '오픈 전',
+        CLOSED: '일시 중지',
+        CANCELLED: '취소됨',
+      };
+      tbody.innerHTML = logs.map(l => `
+        <tr class="hover:bg-slate-50/70">
+          <td class="px-4 py-2.5 tabular-nums font-bold text-slate-900">#${l.arrival_seq}</td>
+          <td class="px-4 py-2.5 tabular-nums text-slate-600">${escapeHtml(l.clicked_text)}</td>
+          <td class="px-4 py-2.5 font-semibold text-slate-900">${escapeHtml(l.nickname)} <span class="font-normal text-slate-500">(${escapeHtml(l.name)})</span></td>
+          <td class="px-4 py-2.5 text-slate-600">${escapeHtml(l.school)} · ${escapeHtml(l.part)}</td>
+          <td class="px-4 py-2.5 font-medium text-slate-800">${l.project_id}조 ${escapeHtml(l.project_name)}</td>
+          <td class="px-4 py-2.5">
+            <span class="inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${badgeMap[l.status] || 'bg-slate-100 text-slate-700'}">${labelMap[l.status] || l.status}</span>
+          </td>
+          <td class="px-4 py-2.5 text-slate-600">${escapeHtml(l.message)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBoard() {
+      if (!appState) return;
+      const grid = document.getElementById('boardGrid');
+      const appliedKeys = new Set();
+      appState.projects.forEach(p => p.members.forEach(m => appliedKeys.add(normalizeNick(m.nickname) + ':' + normalizeNick(m.name))));
+
+      grid.innerHTML = appState.projects.map(p => `
+        <div class="rounded-xl border border-slate-200 p-3.5 bg-slate-50/40">
+          <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-slate-900 truncate">${p.group_no}조 · ${escapeHtml(p.title)}</div>
+              <div class="text-[11px] text-slate-500">PM ${escapeHtml(p.pm_nickname)}/${escapeHtml(p.pm_name)} (${escapeHtml(p.pm_school)})</div>
+            </div>
+            <span class="tabular-nums shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${p.is_full ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}">
+              ${p.current_count}/${p.effective_capacity}
+            </span>
+          </div>
+          <ul class="mt-2.5 space-y-1">
+            ${p.members.length === 0
+              ? '<li class="text-[11px] text-slate-400">배정 인원 없음</li>'
+              : p.members.map(m => `
+                <li class="flex items-center justify-between text-xs">
+                  <span class="text-slate-800 font-medium"><span class="tabular-nums text-[10px] text-slate-400 mr-1">#${m.arrival_seq}</span>${escapeHtml(m.nickname)} (${escapeHtml(m.name)}) · ${escapeHtml(m.school)}</span>
+                  <span class="text-[10px] text-slate-500">${m.part === 'PE(Mobile)' ? 'Mob' : 'Web'}</span>
+                </li>
+              `).join('')}
+          </ul>
+        </div>
+      `).join('');
+
+      const unapplied = challengers.filter(c =>
+        c.attendance !== '불참' &&
+        c.attendance !== '운영진' &&
+        !appliedKeys.has(normalizeNick(c.nickname) + ':' + normalizeNick(c.name))
+      );
+      document.getElementById('unappliedCount').textContent = unapplied.length;
+      document.getElementById('unappliedList').innerHTML = unapplied.length === 0
+        ? `<span class="text-xs text-emerald-700 font-semibold">참석 대상 PE가 모두 신청 완료했습니다.</span>`
+        : unapplied.map(c => `
+            <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700">
+              <strong>${escapeHtml(c.nickname)}</strong>
+              <span class="text-slate-500">(${escapeHtml(c.name)} · ${escapeHtml(c.school)} · ${c.part === 'PE(Mobile)' ? 'Mob' : 'Web'})</span>
+              <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold ${c.attendance === '미응답' ? 'bg-amber-50 text-amber-700' : c.attendance === '늦참' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-50 text-emerald-700'}">${escapeHtml(c.attendance)}</span>
+            </span>
+          `).join('');
+    }
+
+    function updateCountdownTick() {
+      if (!appState) return;
+      const nowServerMs = Date.now() + serverOffsetMs;
+      const nowDate = new Date(nowServerMs);
+      document.getElementById('serverClock').textContent = nowDate.toTimeString().slice(0, 8);
+
+      const banner = document.getElementById('countdownBanner');
+      const liveBadge = document.getElementById('liveBadge');
+      const diff = appState.open_at_ms - nowServerMs;
+
+      if (appState.settings.is_paused) {
+        banner.className = 'rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+        banner.innerHTML = `
+          <div>
+            <div class="text-sm font-bold text-rose-900">현재 운영진이 신청을 일시 중지했습니다.</div>
+            <div class="text-xs text-rose-700 mt-0.5">잠시 후 신청이 재개됩니다. 아래 내 정보는 미리 입력해 두실 수 있습니다.</div>
+          </div>`;
+        liveBadge.className = 'inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700';
+        liveBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>일시 중지';
+      } else if (diff > 0) {
+        const totalSec = Math.floor(diff / 1000);
+        const tenths = Math.floor((diff % 1000) / 100);
+        const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalSec % 60).padStart(2, '0');
+        const openDate = new Date(appState.open_at_ms);
+
+        banner.className = 'rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+        banner.innerHTML = `
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-700">오픈 카운트다운 대기 중 (${openDate.toLocaleTimeString('ko-KR')} 오픈)</div>
+            <div class="text-sm font-semibold text-slate-800 mt-1">정각이 되면 새로고침 없이 신청 버튼이 자동 활성화됩니다. 내 정보를 미리 입력해 두세요!</div>
+          </div>
+          <div class="tabular-nums text-3xl sm:text-4xl font-extrabold tracking-tight text-amber-700">${hrs}:${mins}:${secs}.${tenths}</div>`;
+        liveBadge.className = 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700';
+        liveBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>오픈 대기';
+
+        if (!appState._wasWaiting) {
+          appState._wasWaiting = true;
+          renderGroups();
+        }
+      } else {
+        banner.className = 'hidden';
+        liveBadge.className = 'inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700';
+        liveBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE';
+        if (appState._wasWaiting) {
+          appState._wasWaiting = false;
+          renderGroups();
+          showToast('선착순 신청이 오픈되었습니다! 지금 신청할 수 있습니다.', 'success');
+        }
+      }
+    }
+
+    function applyState(newState) {
+      const wasWaiting = appState ? appState._wasWaiting : false;
+      appState = newState;
+      appState._wasWaiting = wasWaiting;
+      serverOffsetMs = newState.server_time_ms - Date.now();
+      renderKPIs();
+      renderMyStatus();
+      renderGroups();
+      renderLogs();
+      renderBoard();
+      updateCountdownTick();
+    }
+
+    const elModalNick = document.getElementById('modalInputNickname');
+    const elModalName = document.getElementById('modalInputName');
+    const elModalSchool = document.getElementById('modalInputSchool');
+    const elModalPhone = document.getElementById('modalInputPhone');
+    const elModalAutoBox = document.getElementById('modalAutocompleteBox');
+
+    elModalNick.addEventListener('input', () => showModalAutocomplete(elModalNick.value));
+    elModalNick.addEventListener('focus', () => {
+      if (elModalNick.value.trim()) showModalAutocomplete(elModalNick.value);
+    });
+    elModalPhone.addEventListener('input', () => {
+      elModalPhone.value = formatPhone(elModalPhone.value);
+    });
+    document.addEventListener('click', (e) => {
+      if (!elModalAutoBox.contains(e.target) && e.target !== elModalNick) {
+        elModalAutoBox.classList.add('hidden');
+      }
+    });
+
+    function showModalAutocomplete(query) {
+      const q = query.trim().toLowerCase();
+      if (!q || challengers.length === 0) {
+        elModalAutoBox.classList.add('hidden');
+        return;
+      }
+      const matches = challengers.filter(c =>
+        c.nickname.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+      ).slice(0, 8);
+      if (matches.length === 0) {
+        elModalAutoBox.classList.add('hidden');
+        return;
+      }
+      elModalAutoBox.innerHTML = matches.map(c => `
+        <button type="button" onclick="pickModalChallenger(${c.id})"
+          class="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center justify-between gap-2 transition-colors">
+          <div>
+            <div class="text-xs font-bold text-slate-900">${escapeHtml(c.nickname)} <span class="font-medium text-slate-500">(${escapeHtml(c.name)})</span></div>
+            <div class="text-[11px] text-slate-500">${escapeHtml(c.school)} · ${escapeHtml(c.part)}</div>
+          </div>
+          <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.attendance === '불참' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-700'}">${escapeHtml(c.attendance)}</span>
+        </button>
+      `).join('');
+      elModalAutoBox.classList.remove('hidden');
+    }
+
+    function pickModalChallenger(id) {
+      const c = challengers.find(x => x.id === id);
+      if (!c) return;
+      elModalNick.value = c.nickname;
+      elModalName.value = c.name;
+      elModalSchool.value = c.school;
+      elModalPhone.value = c.phone;
+      setModalPart(c.part);
+      elModalAutoBox.classList.add('hidden');
+    }
+
+    function setModalPart(part) {
+      modalSelectedPart = part;
+      const webBtn = document.getElementById('modalPartBtnWeb');
+      const mobBtn = document.getElementById('modalPartBtnMobile');
+      if (part === 'PE(WEB)') {
+        webBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm';
+        mobBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900';
+      } else {
+        mobBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all bg-white text-emerald-700 shadow-sm';
+        webBtn.className = 'rounded-lg py-1.5 text-xs font-semibold transition-all text-slate-600 hover:text-slate-900';
+      }
+    }
+
+    function openApplyModal(projectId) {
+      if (!appState) return;
+      const proj = appState.projects.find(p => p.id === projectId);
+      if (!proj) return;
+      pendingApplyProjectId = projectId;
+      document.getElementById('applyModalGroupBadge').textContent = `${proj.group_no}조`;
+      document.getElementById('applyModalTitle').textContent = proj.title;
+      document.getElementById('applyModalMeta').textContent = `PM ${proj.pm_nickname}/${proj.pm_name} (${proj.pm_school}) · 현재 ${proj.current_count}/${proj.effective_capacity}명`;
+      elModalNick.value = elNick.value.trim();
+      elModalName.value = elName.value.trim();
+      elModalSchool.value = elSchool.value.trim();
+      elModalPhone.value = elPhone.value.trim();
+      setModalPart(selectedPart);
+      elModalAutoBox.classList.add('hidden');
+      const errEl = document.getElementById('applyModalError');
+      errEl.textContent = '';
+      errEl.classList.add('hidden');
+      document.getElementById('applyModal').classList.remove('hidden');
+      if (!elModalNick.value) {
+        elModalNick.focus();
+      } else {
+        document.getElementById('confirmApplyBtn').focus();
+      }
+    }
+
+    function closeApplyModal() {
+      pendingApplyProjectId = null;
+      elModalAutoBox.classList.add('hidden');
+      document.getElementById('applyModal').classList.add('hidden');
+    }
+
+    async function confirmApply() {
+      if (applyingLock || !pendingApplyProjectId) return;
+      const nick = elModalNick.value.trim();
+      const name = elModalName.value.trim();
+      const school = elModalSchool.value.trim();
+      const phone = elModalPhone.value.trim();
+      const errEl = document.getElementById('applyModalError');
+      if (!nick || !name || !school || !phone) {
+        errEl.textContent = '닉네임, 이름, 학교, 전화번호를 모두 입력해 주세요.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      elNick.value = nick;
+      elName.value = name;
+      elSchool.value = school;
+      elPhone.value = phone;
+      setPart(modalSelectedPart, false);
+      saveForm();
+
+      const btn = document.getElementById('confirmApplyBtn');
+      btn.disabled = true;
+      btn.textContent = '처리 중...';
+      applyingLock = true;
+      try {
+        const res = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: pendingApplyProjectId,
+            nickname: nick,
+            name: name,
+            school: school,
+            phone: phone,
+            part: modalSelectedPart,
+          }),
+        });
+        const data = await res.json();
+        if (data.state && data.state.projects) applyState(data.state);
+        if (data.ok) {
+          closeApplyModal();
+          showToast(`#${data.arrival_seq} (${data.clicked_text}) ${data.message}`, 'success');
+        } else {
+          errEl.textContent = `#${data.arrival_seq || '-'} ${data.message}`;
+          errEl.classList.remove('hidden');
+          showToast(`#${data.arrival_seq || '-'} ${data.message}`, 'error');
+        }
+      } catch (err) {
+        errEl.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
+        errEl.classList.remove('hidden');
+      } finally {
+        applyingLock = false;
+        btn.disabled = false;
+        btn.textContent = '선착순 신청 확정';
+      }
+    }
+
+    function openCancelModal() {
+      const mine = findMyAssignment();
+      const infoEl = document.getElementById('cancelModalInfo');
+      if (mine) {
+        infoEl.textContent = `${mine.project.group_no}조 · ${mine.project.title} (순번 #${mine.member.arrival_seq}) 신청을 취소합니다. 취소 즉시 다른 분께 자리가 넘어갑니다.`;
+      } else {
+        infoEl.textContent = '취소 즉시 다른 참여자가 해당 자리를 신청할 수 있습니다.';
+      }
+      document.getElementById('cancelInputNickname').value = elNick.value.trim();
+      document.getElementById('cancelInputPhone').value = elPhone.value.trim();
+      const errEl = document.getElementById('cancelModalError');
+      errEl.textContent = '';
+      errEl.classList.add('hidden');
+      document.getElementById('cancelModal').classList.remove('hidden');
+      document.getElementById('cancelInputPhone').focus();
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancelModal').classList.add('hidden');
+    }
+
+    async function confirmCancel() {
+      const nick = document.getElementById('cancelInputNickname').value.trim();
+      const phone = document.getElementById('cancelInputPhone').value.trim();
+      const errEl = document.getElementById('cancelModalError');
+      if (!nick || !phone) {
+        errEl.textContent = '닉네임과 본인 확인 전화번호를 입력해 주세요.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      const btn = document.getElementById('confirmCancelBtn');
+      btn.disabled = true;
+      btn.textContent = '취소 중...';
+      try {
+        const res = await fetch('/api/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nickname: nick, phone: phone }),
+        });
+        const data = await res.json();
+        if (data.state && data.state.projects) applyState(data.state);
+        if (data.ok) {
+          closeCancelModal();
+          showToast(data.message, 'info');
+        } else {
+          errEl.textContent = data.message || '취소 처리에 실패했습니다.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = '네트워크 오류가 발생했습니다. 다시 시도해 주세요.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '신청 취소 확정';
+      }
+    }
+
+    function bindAdminFormValues() {
+      if (!appState) return;
+      document.getElementById('adminTotalQuota').value = appState.settings.total_quota;
+      const radios = document.querySelectorAll('input[name="distMode"]');
+      radios.forEach(r => r.checked = (r.value === appState.settings.distribution_mode));
+      document.getElementById('adminPaused').checked = appState.settings.is_paused;
+      const dt = new Date(appState.open_at_ms);
+      const pad = n => String(n).padStart(2, '0');
+      const localStr = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+      document.getElementById('adminOpenAt').value = localStr;
+      updateAdminPreview();
+    }
+
+    function openAdminModal() {
+      const errEl = document.getElementById('adminAuthError');
+      errEl.textContent = '';
+      errEl.classList.add('hidden');
+      if (adminAuthenticated && verifiedAdminPin) {
+        document.getElementById('adminLockView').classList.add('hidden');
+        document.getElementById('adminPanelView').classList.remove('hidden');
+        bindAdminFormValues();
+      } else {
+        document.getElementById('adminPin').value = '';
+        document.getElementById('adminLockView').classList.remove('hidden');
+        document.getElementById('adminPanelView').classList.add('hidden');
+      }
+      document.getElementById('adminModal').classList.remove('hidden');
+      if (!adminAuthenticated) {
+        setTimeout(() => document.getElementById('adminPin').focus(), 20);
+      }
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    async function unlockAdminModal() {
+      const pin = document.getElementById('adminPin').value.trim();
+      const errEl = document.getElementById('adminAuthError');
+      if (!pin) {
+        errEl.textContent = '비밀번호를 입력해 주세요.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      try {
+        const res = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          errEl.textContent = data.message || '비밀번호가 올바르지 않습니다.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        verifiedAdminPin = pin;
+        adminAuthenticated = true;
+        document.getElementById('adminPin').value = '';
+        document.getElementById('adminLockView').classList.add('hidden');
+        document.getElementById('adminPanelView').classList.remove('hidden');
+        document.getElementById('adminTabBar').classList.remove('hidden');
+        bindAdminFormValues();
+      } catch (err) {
+        errEl.textContent = '인증 요청 중 오류가 발생했습니다.';
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    async function downloadAdminCSV() {
+      if (!adminAuthenticated || !verifiedAdminPin) {
+        openAdminModal();
+        return;
+      }
+      try {
+        const res = await fetch('/api/admin/export.csv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: verifiedAdminPin }),
+        });
+        if (!res.ok) {
+          showToast('운영자 인증이 만료되었거나 권한이 없습니다.', 'error');
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'umc-pmday-groups.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showToast('CSV 다운로드 중 오류가 발생했습니다.', 'error');
+      }
+    }
+
+    function setAdminQuotaPreset(n) {
+      document.getElementById('adminTotalQuota').value = n;
+      updateAdminPreview();
+    }
+
+    function updateAdminPreview() {
+      const t = parseInt(document.getElementById('adminTotalQuota').value || '0', 10);
+      const mode = document.querySelector('input[name="distMode"]:checked')?.value || 'auto_even';
+      const el = document.getElementById('adminQuotaPreview');
+      if (isNaN(t) || t <= 0) {
+        el.textContent = '1명 이상의 목표 인원을 입력해 주세요.';
+        return;
+      }
+      let base, high, k;
+      if (mode === 'fixed_4_5' && t >= 72 && t <= 90) {
+        base = 4; high = 5; k = t - 72;
+      } else {
+        base = Math.floor(t / 18);
+        k = t % 18;
+        high = k === 0 ? base : base + 1;
+      }
+      if (k === 0) {
+        el.textContent = `미리보기: 18개 조 모두 동일하게 ${base}명씩 배정됩니다 (총 ${t}명).`;
+      } else {
+        el.textContent = `미리보기: 빨리 차는 ${k}개 조는 ${high}명, 나머지 ${18 - k}개 조는 ${base}명씩 배정됩니다 (총 ${t}명).`;
+      }
+    }
+
+    async function applyQuickOpen(offsetSec) {
+      await submitAdminSettings(offsetSec);
+    }
+
+    async function saveAdminSettings() {
+      await submitAdminSettings(null);
+    }
+
+    async function submitAdminSettings(offsetSec) {
+      const pin = verifiedAdminPin;
+      const totalQuota = parseInt(document.getElementById('adminTotalQuota').value || '87', 10);
+      const mode = document.querySelector('input[name="distMode"]:checked')?.value || 'auto_even';
+      const openAtISO = document.getElementById('adminOpenAt').value;
+      const isPaused = document.getElementById('adminPaused').checked;
+
+      const payload = {
+        pin,
+        total_quota: totalQuota,
+        distribution_mode: mode,
+        open_at_iso: openAtISO,
+        is_paused: isPaused,
+      };
+      if (offsetSec !== null) payload.open_offset_sec = offsetSec;
+
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        showToast(data.message || '설정 저장 실패', 'error');
+        return;
+      }
+      if (data.state && data.state.projects) applyState(data.state);
+      showToast(offsetSec !== null ? '오픈 시각과 설정이 즉시 반영되었습니다.' : data.message, 'success');
+      if (offsetSec === null) closeAdminModal();
+    }
+
+    async function resetAllApplications() {
+      const pin = verifiedAdminPin;
+      if (!confirm('정말 모든 신청 내역과 클릭 순번 로그를 초기화하시겠습니까?')) return;
+      const res = await fetch('/api/admin/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        showToast(data.message || '초기화 실패', 'error');
+        return;
+      }
+      if (data.state && data.state.projects) applyState(data.state);
+      showToast(data.message, 'info');
+    }
+
+    async function boot() {
+      loadSavedForm();
+      const [stateRes, chalRes] = await Promise.all([
+        fetch('/api/state'),
+        fetch('/api/challengers'),
+      ]);
+      challengers = await chalRes.json();
+      const initialState = await stateRes.json();
+      applyState(initialState);
+
+      // Connect SSE for live updates
+      const es = new EventSource('/api/stream');
+      es.addEventListener('state', (ev) => {
+        try {
+          applyState(JSON.parse(ev.data));
+        } catch (e) {}
+      });
+
+      setInterval(updateCountdownTick, 100);
+    }
+
+    boot();
+  </script>
+</body>
+</html>

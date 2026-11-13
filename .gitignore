@@ -1,0 +1,10 @@
+mysql-data/
+.mysql-data/
+secrets/
+web/static/images/
+*.exe
+umc-pmday
+umc-pmday-linux
+*.log
+*.err
+.env

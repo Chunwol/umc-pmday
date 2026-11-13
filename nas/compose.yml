@@ -1,0 +1,72 @@
+name: umc-pmday
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: umc-pmday-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: umc_pmday
+      MYSQL_USER: umc
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      TZ: Asia/Seoul
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  app:
+    image: alpine:latest
+    container_name: umc-pmday-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    command: ["/bin/sh", "/deploy/run-app.sh"]
+    environment:
+      PORT: "8080"
+      TZ: Asia/Seoul
+      ADMIN_PIN_FILE: /run/secrets/admin_pin
+      SEED_PROJECTS_FILE: /run/secrets/seed_projects.json
+      SEED_CHALLENGERS_FILE: /run/secrets/seed_challengers.json
+      SEED_ASSETS_DIR: /run/secrets/images
+      RELEASE_FILE: /deploy/release.txt
+    volumes:
+      - ./runtime:/deploy
+      - ./secrets:/run/secrets:ro
+    networks:
+      - backend
+      - proxy_frontend
+
+  runner:
+    image: ghcr.io/actions/actions-runner:latest
+    container_name: umc-pmday-runner
+    restart: unless-stopped
+    init: true
+    entrypoint: ["/runner/run.sh"]
+    working_dir: /runner
+    volumes:
+      - ./runner:/runner
+      - ./runtime:/deploy
+    networks:
+      - backend
+      - egress
+
+networks:
+  backend:
+  egress:
+  proxy_frontend:
+    external: true
+    name: naco-jsp_frontend
+
+volumes:
+  mysql_data:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  db_root_password:
+    file: ./secrets/db_root_password
