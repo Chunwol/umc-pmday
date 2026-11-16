@@ -141,14 +141,9 @@
       if (document.getElementById('mtNotice').dataset.afterApply === 'true') {
         delete document.getElementById('mtNotice').dataset.afterApply;
         document.getElementById('mtApplySuccess').hidden = true;
-      }
-    });
-    document.getElementById('pmDayNotice').addEventListener('close', () => {
-      if (document.getElementById('pmDayNotice').dataset.skipMT === 'true') {
-        delete document.getElementById('pmDayNotice').dataset.skipMT;
         return;
       }
-      document.getElementById('mtNotice').showModal();
+      document.getElementById('pmDayNotice').showModal();
     });
     function showApplySuccessNotice(message) {
       const notice = document.getElementById('mtNotice');
@@ -159,13 +154,16 @@
       notice.showModal();
       notice.scrollTop = 0;
     }
-    document.getElementById('pmDayNotice').showModal();
+    document.getElementById('mtNotice').showModal();
   </script>
 
   <!-- Top Sticky Header -->
   <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
       <div class="flex items-center gap-3 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-sm">
+          UMC
+        </div>
         <div class="min-w-0">
           <div class="flex items-center gap-2">
             <h1 class="text-sm sm:text-lg font-bold tracking-tight text-slate-900">UMC PM Day · 아이디어 디벨롭 조 편성</h1>
@@ -629,10 +627,7 @@
   <script>
     function openAttendanceCancellation() {
       const pmNotice = document.getElementById('pmDayNotice');
-      if (pmNotice.open) {
-        pmNotice.dataset.skipMT = 'true';
-        pmNotice.close();
-      }
+      if (pmNotice.open) pmNotice.close();
       const form = document.getElementById('attendanceCancelForm');
       const sourceFields = { nickname: 'inputNickname', name: 'inputName', school: 'inputSchool', phone: 'inputPhone' };
       for (const [name, id] of Object.entries(sourceFields)) {
