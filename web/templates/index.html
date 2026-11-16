@@ -709,6 +709,27 @@
     let currentFilter = 'all';
     let currentLogFilter = 'all';
     let selectedPart = localStorage.getItem('umc_part') || 'PE(WEB)';
+
+    const projectNotionUrls = {
+      1: 'https://makeus-challenge.notion.site/40db57f4-596b-8018-9fcd-d74ef9e1c4e1',
+      2: 'https://makeus-challenge.notion.site/413b57f4-596b-8046-8ff0-f96a836b1ec4',
+      3: 'https://makeus-challenge.notion.site/412b57f4-596b-80c5-9b71-f4addfdf1811',
+      4: 'https://makeus-challenge.notion.site/40fb57f4-596b-8004-aed9-e8b33c554ffb',
+      5: 'https://makeus-challenge.notion.site/412b57f4-596b-8081-bf31-de78cf246a26',
+      6: 'https://makeus-challenge.notion.site/40eb57f4-596b-8061-9c44-f1494042d0f4',
+      7: 'https://makeus-challenge.notion.site/412b57f4-596b-805c-9294-de05afad4fee',
+      8: 'https://makeus-challenge.notion.site/411b57f4-596b-800f-98f9-f8397b261a95',
+      9: 'https://makeus-challenge.notion.site/40fb57f4-596b-80fe-be8b-d1ea56496586',
+      10: 'https://makeus-challenge.notion.site/412b57f4-596b-8050-9048-e0ed623621ba',
+      11: 'https://makeus-challenge.notion.site/411b57f4-596b-8042-8ea8-f8e60e687c45',
+      12: 'https://makeus-challenge.notion.site/40eb57f4-596b-80c8-99d7-f8192a369c4c',
+      13: 'https://makeus-challenge.notion.site/659b57f4-596b-82a8-a045-01fca2e45984',
+      14: 'https://makeus-challenge.notion.site/40eb57f4-596b-8003-990b-e0fe436c7bf6',
+      15: 'https://makeus-challenge.notion.site/40fb57f4-596b-80f4-ac98-efb693db9e8e',
+      16: 'https://makeus-challenge.notion.site/40cb57f4-596b-802a-ae72-d80e249adefe',
+      17: 'https://makeus-challenge.notion.site/40fb57f4-596b-8087-b905-ca2f0c9d6969',
+      18: 'https://makeus-challenge.notion.site/40fb57f4-596b-80b1-ad5b-d349e2aa9bcc',
+    };
     let adminAuthenticated = false;
     let verifiedAdminPin = '';
     let applyingLock = false;
@@ -1062,7 +1083,7 @@
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
                       <img src="${escapeHtml(p.logo_url)}" alt="" class="h-7 w-7 shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-50" />
-                      <h3 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900">${escapeHtml(p.title)}</h3>
+                      <h3 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900"><a href="${projectNotionUrls[p.group_no]}" target="_blank" rel="noopener noreferrer" onclick="alert('Notion에서 프로젝트 상세 내용을 확인합니다.')" class="hover:text-emerald-700 hover:underline">${escapeHtml(p.title)}</a></h3>
                       <span class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">승인 완료</span>
                     </div>
                     <p class="mt-1 text-xs font-medium text-slate-500">PM ${escapeHtml(p.pm_nickname)}/${escapeHtml(p.pm_name)} · ${escapeHtml(p.pm_school)}</p>
@@ -1216,11 +1237,12 @@
         const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
         const secs = String(totalSec % 60).padStart(2, '0');
         const openDate = new Date(appState.open_at_ms);
+        const openDateLabel = `${openDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' })} (${openDate.toLocaleDateString('ko-KR', { weekday: 'short', timeZone: 'Asia/Seoul' })}) ${openDate.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Seoul' })}`;
 
         banner.className = 'rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
         banner.innerHTML = `
           <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-amber-700">오픈 카운트다운 대기 중 (${openDate.toLocaleTimeString('ko-KR')} 오픈)</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-700">오픈 카운트다운 대기 중 (${openDateLabel} 오픈)</div>
             <div class="text-sm font-semibold text-slate-800 mt-1">정각이 되면 새로고침 없이 신청 버튼이 자동 활성화됩니다. 내 정보를 미리 입력해 두세요!</div>
           </div>
           <div class="tabular-nums text-3xl sm:text-4xl font-extrabold tracking-tight text-amber-700">${hrs}:${mins}:${secs}.${tenths}</div>`;
