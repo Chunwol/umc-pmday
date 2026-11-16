@@ -1083,10 +1083,11 @@
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
                       <img src="${escapeHtml(p.logo_url)}" alt="" class="h-7 w-7 shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-50" />
-                      <h3 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900"><a href="${projectNotionUrls[p.group_no]}" target="_blank" rel="noopener noreferrer" onclick="alert('Notion에서 프로젝트 상세 내용을 확인합니다.')" class="hover:text-emerald-700 hover:underline">${escapeHtml(p.title)}</a></h3>
+                      <h3 class="truncate text-base sm:text-lg font-bold tracking-tight text-slate-900">${escapeHtml(p.title)}</h3>
                       <span class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">승인 완료</span>
                     </div>
                     <p class="mt-1 text-xs font-medium text-slate-500">PM ${escapeHtml(p.pm_nickname)}/${escapeHtml(p.pm_name)} · ${escapeHtml(p.pm_school)}</p>
+                    <a href="${projectNotionUrls[p.group_no]}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex min-h-9 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">프로젝트 자세히 보기 <span aria-hidden="true" class="ml-1">↗</span></a>
                   </div>
                   ${actionBtnHtml}
                 </div>

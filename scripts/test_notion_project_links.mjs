@@ -14,6 +14,8 @@ test('every PM Day group has one direct Notion project URL', () => {
   assert.equal(new Set(entries.map(([, , pageId]) => pageId)).size, 18);
 });
 
-test('project title link alerts before navigating to its Notion page', () => {
-  assert.ok(/<a href="\$\{projectNotionUrls\[p\.group_no\]\}"[^>]*onclick="alert\(/.test(html), 'project title anchor should alert before opening its link');
+test('project title stays plain text and a visible button opens Notion without an alert', () => {
+  assert.ok(/<h3[^>]*>\$\{escapeHtml\(p\.title\)\}<\/h3>/.test(html), 'project title should not be the only link');
+  assert.ok(/<a href="\$\{projectNotionUrls\[p\.group_no\]\}" target="_blank" rel="noopener noreferrer"[^>]*>프로젝트 자세히 보기/.test(html), 'project card should have a clear Notion details link');
+  assert.doesNotMatch(html, /onclick="alert\(/, 'project Notion links should not show an alert');
 });
