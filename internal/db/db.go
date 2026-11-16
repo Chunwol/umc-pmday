@@ -48,6 +48,16 @@ func Open(dsn, adminPIN string) (*Store, error) {
 
 func (s *Store) migrate(ctx context.Context) error {
 	stmts := []string{
+		`CREATE TABLE IF NOT EXISTS attendance_cancellations (
+			id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			nickname VARCHAR(64) NOT NULL,
+			name VARCHAR(64) NOT NULL,
+			school VARCHAR(64) NOT NULL,
+			phone VARCHAR(32) NOT NULL,
+			reason TEXT NOT NULL,
+			submitted_at DATETIME(6) NOT NULL,
+			UNIQUE KEY uk_attendance_identity (name, school, phone)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 		`CREATE TABLE IF NOT EXISTS settings (
 			id TINYINT NOT NULL PRIMARY KEY,
 			total_quota INT NOT NULL DEFAULT 87,

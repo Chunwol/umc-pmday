@@ -131,6 +131,22 @@ type CancelRequest struct {
 	Phone    string `json:"phone"`
 }
 
+// AttendanceCancellationRequest asks organizers to review a PM Day absence.
+// It does not cancel a group assignment or change the attendance roster.
+type AttendanceCancellationRequest struct {
+	Nickname string `json:"nickname"`
+	Name     string `json:"name"`
+	School   string `json:"school"`
+	Phone    string `json:"phone"`
+	Reason   string `json:"reason"`
+}
+
+type AttendanceCancellation struct {
+	ID int64 `json:"id"`
+	AttendanceCancellationRequest
+	SubmittedAt time.Time `json:"submitted_at"`
+}
+
 // AdminSettingsRequest updates global quota, mode, open time, or pause state.
 type AdminSettingsRequest struct {
 	Pin              string `json:"pin"`

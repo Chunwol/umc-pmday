@@ -51,6 +51,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /api/stream", s.handleStream)
 	mux.HandleFunc("POST /api/apply", s.handleApply)
 	mux.HandleFunc("POST /api/cancel", s.handleCancel)
+	mux.HandleFunc("POST /api/attendance-cancellation", s.handleAttendanceCancellation)
+	mux.HandleFunc("POST /api/admin/attendance-cancellations", s.handleAdminAttendanceCancellations)
 	mux.HandleFunc("POST /api/admin/auth", s.handleAdminAuth)
 	mux.HandleFunc("POST /api/admin/settings", s.handleAdminSettings)
 	mux.HandleFunc("POST /api/admin/remove", s.handleAdminRemove)
