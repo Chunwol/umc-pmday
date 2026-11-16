@@ -71,9 +71,10 @@
   <dialog id="mtNotice" class="event-notice" aria-labelledby="mtNoticeTitle" aria-describedby="mtNoticeDescription">
     <div class="mt-content">
       <p class="mt-required">쿼카 지부 · 전원 제출 필수</p>
+      <p id="mtApplySuccess" hidden role="status" style="margin-bottom: 12px; font-weight: 700; color: #047857"></p>
       <h2 id="mtNoticeTitle">지부 MT 참석·불참 여부<br />꼭 제출해 주세요</h2>
       <p id="mtNoticeDescription">이전 수요조사와 별개로, <strong>참석·불참 여부와 관계없이 모든 인원이</strong> 아래 구글폼을 제출해 주세요. 수요조사 결과를 바탕으로 장소와 참가비가 확정되었습니다.</p>
-      <p class="mt-deadline">신청 기한: 11월 16일(월) 23:59까지</p>
+      <p class="mt-deadline">신청 기한: 11월 18일(수) 23:59까지</p>
       <dl>
         <dt>일시</dt><dd>11월 28일(토) 19:00 ~ 29일(일) 09:00</dd>
         <dt>장소</dt><dd>영등포역 포리 파티룸<br />서울특별시 영등포구 영등포로 254 A동 지하 1층 2호</dd>
@@ -136,8 +137,22 @@
   </dialog>
   <script>
     document.getElementById('mtNotice').addEventListener('close', () => {
+      if (document.getElementById('mtNotice').dataset.afterApply === 'true') {
+        delete document.getElementById('mtNotice').dataset.afterApply;
+        document.getElementById('mtApplySuccess').hidden = true;
+        return;
+      }
       document.getElementById('pmDayNotice').showModal();
     });
+    function showApplySuccessNotice(message) {
+      const notice = document.getElementById('mtNotice');
+      notice.dataset.afterApply = 'true';
+      document.getElementById('mtApplySuccess').textContent = `아이디어 디벨롭 조 신청 완료! ${message}`;
+      document.getElementById('mtApplySuccess').hidden = false;
+      notice.querySelector('.mt-close').textContent = '확인하고 닫기';
+      notice.showModal();
+      notice.scrollTop = 0;
+    }
     document.getElementById('mtNotice').showModal();
   </script>
 
@@ -1381,6 +1396,7 @@
         if (data.ok) {
           closeApplyModal();
           showToast(`#${data.arrival_seq} (${data.clicked_text}) ${data.message}`, 'success');
+          showApplySuccessNotice(`#${data.arrival_seq} (${data.clicked_text}) ${data.message}`);
         } else {
           errEl.textContent = `#${data.arrival_seq || '-'} ${data.message}`;
           errEl.classList.remove('hidden');
