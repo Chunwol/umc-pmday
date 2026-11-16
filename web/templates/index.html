@@ -45,9 +45,50 @@
     .tabular-nums { font-variant-numeric: tabular-nums; }
     .card-shadow { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03); }
     .card-shadow:hover { box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08); }
+    #mtNotice { width: min(540px, calc(100% - 32px)); max-height: 88dvh; padding: 0; border: 0; border-radius: 20px; color: #0F172A; background: white; overflow-y: auto; box-shadow: 0 24px 80px #0f172a40; }
+    #mtNotice::backdrop { background: #0f172ab3; }
+    #mtNotice .mt-content { padding: 28px; }
+    #mtNotice h2 { margin: 8px 0 12px; font-size: 24px; font-weight: 800; line-height: 1.35; }
+    #mtNotice p, #mtNotice li, #mtNotice dd { font-size: 14px; line-height: 1.7; }
+    #mtNotice .mt-required { font-weight: 700; color: #047857; }
+    #mtNotice .mt-deadline { margin: 20px 0; padding: 14px 16px; border-radius: 12px; background: #FFF1F2; color: #9F1239; font-weight: 700; }
+    #mtNotice dl { display: grid; grid-template-columns: 54px 1fr; gap: 8px 12px; margin: 18px 0; }
+    #mtNotice dt { font-size: 14px; font-weight: 700; }
+    #mtNotice dd { margin: 0; }
+    #mtNotice ul { padding-left: 18px; list-style: disc; color: #475569; }
+    #mtNotice .mt-actions { display: grid; gap: 10px; margin-top: 22px; }
+    #mtNotice .mt-apply { padding: 14px; border-radius: 12px; background: #047857; color: white; text-align: center; font-weight: 700; text-decoration: none; }
+    #mtNotice .mt-close { padding: 10px; background: #F1F5F9; border: 0; border-radius: 12px; font: inherit; cursor: pointer; }
+    #mtNotice :focus-visible { outline: 3px solid #059669; outline-offset: 3px; }
+    html:has(#mtNotice[open]) { overflow: hidden; }
   </style>
 </head>
 <body class="min-h-screen">
+
+  <dialog id="mtNotice" aria-labelledby="mtNoticeTitle" aria-describedby="mtNoticeDescription">
+    <div class="mt-content">
+      <p class="mt-required">쿼카 지부 · 전원 제출 필수</p>
+      <h2 id="mtNoticeTitle">지부 MT 참석·불참 여부<br />꼭 제출해 주세요</h2>
+      <p id="mtNoticeDescription">이전 수요조사와 별개로, <strong>참석·불참 여부와 관계없이 모든 인원이</strong> 아래 구글폼을 제출해 주세요. 수요조사 결과를 바탕으로 장소와 참가비가 확정되었습니다.</p>
+      <p class="mt-deadline">신청 기한: 11월 16일(월) 23:59까지</p>
+      <dl>
+        <dt>일시</dt><dd>11월 28일(토) 19:00 ~ 29일(일) 09:00</dd>
+        <dt>장소</dt><dd>영등포역 포리 파티룸<br />서울특별시 영등포구 영등포로 254 A동 지하 1층 2호</dd>
+        <dt>참가비</dt><dd>32,000원</dd>
+      </dl>
+      <ul>
+        <li>MT 참석 신청은 선착순이며, 정원 초과 시 신청이 취소될 수 있습니다.</li>
+        <li>지정된 시간 외에 제출된 폼은 인정되지 않습니다.</li>
+        <li>기간 외 취소 및 노쇼 시 환불이 불가합니다.</li>
+        <li>PMDay 종료 후 MT 장소로 이동해 주세요. (버스 약 12분)</li>
+      </ul>
+      <div class="mt-actions">
+        <a class="mt-apply" href="https://forms.gle/XDZymyKL1qLLYfsR8" target="_blank" rel="noopener noreferrer" autofocus>참석·불참 여부 제출하기 (새 탭)</a>
+        <button class="mt-close" type="button" onclick="document.getElementById('mtNotice').close()">닫고 PMDay 보기</button>
+      </div>
+    </div>
+  </dialog>
+  <script>document.getElementById('mtNotice').showModal();</script>
 
   <!-- Top Sticky Header -->
   <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
