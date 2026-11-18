@@ -51,6 +51,16 @@ type Challenger struct {
 	Note       string `json:"note"`
 }
 
+// UnappliedChallenger is a PE who has not joined a project and has no PM Day attendance-cancellation request.
+type UnappliedChallenger struct {
+	ID         int    `json:"id"`
+	Nickname   string `json:"nickname"`
+	Name       string `json:"name"`
+	School     string `json:"school"`
+	Part       string `json:"part"`
+	Attendance string `json:"attendance"`
+}
+
 // ClickLog records every apply/cancel attempt with microsecond timestamp & arrival sequence.
 type ClickLog struct {
 	ID          int64     `json:"id"`
@@ -95,13 +105,14 @@ type QuotaSummary struct {
 
 // StateResponse is the full real-time snapshot sent to clients and over SSE.
 type StateResponse struct {
-	ServerTimeMs int64         `json:"server_time_ms"`
-	OpenAtMs     int64         `json:"open_at_ms"`
-	IsOpen       bool          `json:"is_open"`
-	Settings     Settings      `json:"settings"`
-	Summary      QuotaSummary  `json:"summary"`
-	Projects     []ProjectView `json:"projects"`
-	RecentLogs   []ClickLog    `json:"recent_logs"`
+	ServerTimeMs         int64                 `json:"server_time_ms"`
+	OpenAtMs             int64                 `json:"open_at_ms"`
+	IsOpen               bool                  `json:"is_open"`
+	Settings             Settings              `json:"settings"`
+	Summary              QuotaSummary          `json:"summary"`
+	Projects             []ProjectView         `json:"projects"`
+	UnappliedChallengers []UnappliedChallenger `json:"unapplied_challengers"`
+	RecentLogs           []ClickLog            `json:"recent_logs"`
 }
 
 // ApplyRequest represents a user's registration click.

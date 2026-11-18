@@ -111,7 +111,7 @@ _, cancel_teo2 = req_json("/api/cancel", "POST", {"nickname": "중복닉", "phon
 assert cancel_teo2["ok"], f"Cancel by phone suffix failed: {cancel_teo2}"
 print("[PASS] Same-nick different-person OK (사용자A & 사용자B both applied, same-person blocked, phone-tail cancel isolated)")
 
-# 6. Reset and run 100-user high-concurrency burst for total_quota=77 (with 3 unapplied latecomers -> regulars fill 2 groups at 5 + 16 groups at 4 = 74)
+# 6. Reset and run 100-user high-concurrency burst for total_quota=77; attendance timing does not reserve seats
 req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})
 req_json("/api/admin/settings", "POST", {
     "pin": ADMIN_PIN,
@@ -146,80 +146,38 @@ counts = [p["current_count"] for p in final_state["projects"]]
 five_groups = sum(1 for c in counts if c == 5)
 four_groups = sum(1 for c in counts if c == 4)
 print(f"[PASS] 100-concurrent burst OK: total_applied={final_state['summary']['total_applied']}, 5-member groups={five_groups}, 4-member groups={four_groups}, counts={counts}")
-assert success_cnt == 74 and final_state["summary"]["total_applied"] == 74
-assert five_groups == 2 and four_groups == 16
+assert success_cnt == 77 and final_state["summary"]["total_applied"] == 77
+assert five_groups == 5 and four_groups == 13
 
-# 7. Test total_quota=87 latecomer 5-member guarantee (both regular-first and late-first)
+# 7. Test that latecomers do not receive reserved seats when regular applicants fill the quota
 req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})
 req_json("/api/admin/settings", "POST", {
     "pin": ADMIN_PIN,
-    "total_quota": 87,
+    "total_quota": 85,
     "distribution_mode": "auto_even",
     "open_offset_sec": -1,
     "is_paused": False,
 })
 
-# 7A) 84 on-time applicants apply across groups 1..18 -> must fill 12 groups of 5 (60) + 6 groups of 4 (24) = 84
-for round_i in range(5):
-    for gid in range(1, 19):
-        idx = round_i * 18 + gid
-        if idx > 84:
-            break
-        req_json("/api/apply", "POST", {
-            "project_id": gid, "nickname": f"정시{idx:02d}", "name": f"정시{idx:02d}",
-            "school": "동양미래대", "phone": f"010-8000-{idx:04d}", "part": "PE(WEB)",
-        })
-
-_, mid_state = req_json("/api/state")
-assert mid_state["summary"]["total_applied"] == 84, f"Expected 84 regular applied, got {mid_state['summary']['total_applied']}"
-# An 85th regular applicant must be blocked while 3 latecomers remain unapplied
-_, reg85 = req_json("/api/apply", "POST", {
-    "project_id": 18, "nickname": "정시85", "name": "정시85",
-    "school": "동양미래대", "phone": "010-8000-0085", "part": "PE(WEB)",
-})
-assert not reg85["ok"] and reg85["status"] == "FULL", f"85th regular applicant should not steal latecomer slot: {reg85}"
-
-# Now the 3 latecomers join groups 16, 17, 18 (currently 4 members each) -> each must become 5 members!
 late_chals = [c for c in chals if c["attendance"] == "늦참"]
 assert len(late_chals) == 3, f"Expected 3 latecomers, got {len(late_chals)}"
-latecomers = [
-    (16 + i, c["nickname"], c["name"], c["school"], c["phone"], c["part"])
-    for i, c in enumerate(late_chals)
-]
-for gid, nick, nm, sch, ph, pt in latecomers:
-    _, lr = req_json("/api/apply", "POST", {
-        "project_id": gid, "nickname": nick, "name": nm, "school": sch, "phone": ph, "part": pt,
+for idx in range(85):
+    gid = (idx % 18) + 1
+    _, result = req_json("/api/apply", "POST", {
+        "project_id": gid, "nickname": f"정시{idx+1:03d}", "name": f"정시{idx+1:03d}",
+        "school": "동양미래대", "phone": f"010-8000-{idx+1:04d}", "part": "PE(WEB)",
     })
-    assert lr["ok"], f"Latecomer {nick} failed to enter 4-member group {gid}: {lr}"
+    assert result["ok"], f"Regular applicant {idx+1} was blocked before the global quota filled: {result}"
 
-_, after_late = req_json("/api/state")
-counts87 = [p["current_count"] for p in after_late["projects"]]
-assert after_late["summary"]["total_applied"] == 87
-assert counts87[15] == 5 and counts87[16] == 5 and counts87[17] == 5
-assert sum(1 for c in counts87 if c == 5) == 15 and sum(1 for c in counts87 if c == 4) == 3
-
-# 7B) Latecomers apply FIRST into groups 16, 17, 18; then 84 regulars apply across 1..18 -> groups 16,17,18 must still reach 5!
-req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})
-for gid, nick, nm, sch, ph, pt in latecomers:
-    _, lr = req_json("/api/apply", "POST", {
-        "project_id": gid, "nickname": nick, "name": nm, "school": sch, "phone": ph, "part": pt,
+_, full_state = req_json("/api/state")
+assert full_state["summary"]["total_applied"] == 85
+for idx, c in enumerate(late_chals):
+    _, late_result = req_json("/api/apply", "POST", {
+        "project_id": idx + 1, "nickname": c["nickname"], "name": c["name"],
+        "school": c["school"], "phone": c["phone"], "part": c["part"],
     })
-    assert lr["ok"]
-for ridx in range(1, 88):
-    # Try groups 1..18 round-robin
-    for off in range(18):
-        gid = ((ridx + off - 1) % 18) + 1
-        _, rr = req_json("/api/apply", "POST", {
-            "project_id": gid, "nickname": f"선착{ridx:02d}", "name": f"선착{ridx:02d}",
-            "school": "숭실대", "phone": f"010-7000-{ridx:04d}", "part": "PE(WEB)",
-        })
-        if rr["ok"]:
-            break
-_, early_late = req_json("/api/state")
-counts_early = [p["current_count"] for p in early_late["projects"]]
-assert early_late["summary"]["total_applied"] == 87
-assert counts_early[15] == 5 and counts_early[16] == 5 and counts_early[17] == 5, f"Latecomer groups must all be 5: {counts_early}"
-print(f"[PASS] Total 87 latecomer 5-member guarantee OK (both late-arrival and early-arrival -> counts={counts_early})")
+    assert not late_result["ok"] and late_result["status"] == "FULL", f"Latecomer should not exceed global quota: {late_result}"
+print("[PASS] 85 regular applicants use the quota without latecomer-reserved seats; later applicants are blocked")
 
 # 8. Restore clean production defaults (total_quota=87, open now, 0 test applications)
 req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})

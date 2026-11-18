@@ -258,27 +258,6 @@ func NormalizeApplicantKey(nick, name string) string {
 	return NormalizeNicknameKey(nick) + ":" + NormalizeNicknameKey(name)
 }
 
-type rowQueryer interface {
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-}
-
-func loadLateApplicantKeys(ctx context.Context, q rowQueryer) (map[string]bool, error) {
-	rows, err := q.QueryContext(ctx, `SELECT nickname, name FROM challengers WHERE attendance = '늦참'`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	keys := make(map[string]bool)
-	for rows.Next() {
-		var nick, name string
-		if err := rows.Scan(&nick, &name); err != nil {
-			return nil, err
-		}
-		keys[NormalizeApplicantKey(nick, name)] = true
-	}
-	return keys, rows.Err()
-}
-
 func NormalizePhoneDigits(phone string) string {
 	var b strings.Builder
 	for _, r := range phone {
@@ -356,11 +335,6 @@ func (s *Store) GetState(ctx context.Context) (models.StateResponse, error) {
 		return models.StateResponse{}, err
 	}
 
-	lateKeys, err := loadLateApplicantKeys(ctx, s.DB)
-	if err != nil {
-		return models.StateResponse{}, err
-	}
-
 	arows, err := s.DB.QueryContext(ctx, `SELECT id, arrival_seq, project_id, nickname, name, school, phone, part, clicked_at FROM applications ORDER BY arrival_seq ASC, id ASC`)
 	if err != nil {
 		return models.StateResponse{}, err
@@ -369,8 +343,7 @@ func (s *Store) GetState(ctx context.Context) (models.StateResponse, error) {
 
 	membersByProj := make(map[int][]models.Application, 18)
 	countsByProj := make(map[int]int, 18)
-	lateGroups := make(map[int]bool, 18)
-	appliedLate := make(map[string]bool, len(lateKeys))
+	appliedKeys := make(map[string]bool)
 	for arows.Next() {
 		var a models.Application
 		var phoneRaw string
@@ -381,18 +354,23 @@ func (s *Store) GetState(ctx context.Context) (models.StateResponse, error) {
 		a.ClickedText = a.ClickedAt.Format("15:04:05.000000")
 		membersByProj[a.ProjectID] = append(membersByProj[a.ProjectID], a)
 		countsByProj[a.ProjectID]++
-		appKey := NormalizeApplicantKey(a.Nickname, a.Name)
-		if lateKeys[appKey] {
-			lateGroups[a.ProjectID] = true
-			appliedLate[appKey] = true
-		}
+		appliedKeys[NormalizeApplicantKey(a.Nickname, a.Name)] = true
 	}
 	if err := arows.Err(); err != nil {
 		return models.StateResponse{}, err
 	}
 
-	unappliedLateCount := len(lateKeys) - len(appliedLate)
-	effCaps, summary := capacity.ComputeWithLate(settings, countsByProj, lateGroups, unappliedLateCount)
+	effCaps, summary := capacity.Compute(settings, countsByProj)
+
+	challengers, err := s.ListChallengers(ctx)
+	if err != nil {
+		return models.StateResponse{}, err
+	}
+	cancellationKeys, err := s.attendanceCancellationKeys(ctx)
+	if err != nil {
+		return models.StateResponse{}, err
+	}
+	unappliedChallengers := buildUnappliedChallengers(challengers, appliedKeys, cancellationKeys)
 
 	views := make([]models.ProjectView, 0, len(projects))
 	for _, p := range projects {
@@ -442,13 +420,14 @@ func (s *Store) GetState(ctx context.Context) (models.StateResponse, error) {
 	isOpen := !settings.IsPaused && !now.Before(settings.OpenAt)
 
 	return models.StateResponse{
-		ServerTimeMs: now.UnixMilli(),
-		OpenAtMs:     settings.OpenAt.UnixMilli(),
-		IsOpen:       isOpen,
-		Settings:     settings,
-		Summary:      summary,
-		Projects:     views,
-		RecentLogs:   logs,
+		ServerTimeMs:         now.UnixMilli(),
+		OpenAtMs:             settings.OpenAt.UnixMilli(),
+		IsOpen:               isOpen,
+		Settings:             settings,
+		Summary:              summary,
+		Projects:             views,
+		UnappliedChallengers: unappliedChallengers,
+		RecentLogs:           logs,
 	}, nil
 }
 
@@ -523,45 +502,25 @@ func (s *Store) ApplyAtomic(ctx context.Context, seq uint64, clickedAt time.Time
 		return models.ApplyResponse{OK: false, Status: "ERROR", Message: "중복 확인 중 오류가 발생했습니다.", ArrivalSeq: seq, ClickedText: clickedText}
 	}
 
-	lateKeys, err := loadLateApplicantKeys(ctx, tx)
-	if err != nil {
-		return models.ApplyResponse{OK: false, Status: "ERROR", Message: "늦참 대상 확인 중 오류가 발생했습니다.", ArrivalSeq: seq, ClickedText: clickedText}
-	}
-	isLateApplicant := lateKeys[nickKey]
-
-	// Count current applications across all 18 groups and track latecomer group membership
-	crows, err := tx.QueryContext(ctx, `SELECT project_id, nickname_key FROM applications`)
+	// Count current applications across all 18 groups. Attendance timing does not change seat priority.
+	crows, err := tx.QueryContext(ctx, `SELECT project_id FROM applications`)
 	if err != nil {
 		return models.ApplyResponse{OK: false, Status: "ERROR", Message: "정원 집계 중 오류가 발생했습니다.", ArrivalSeq: seq, ClickedText: clickedText}
 	}
 	countsByProj := make(map[int]int, 18)
-	lateGroups := make(map[int]bool, 18)
-	appliedLate := make(map[string]bool, len(lateKeys))
 	for crows.Next() {
 		var pid int
-		var appKey string
-		if err := crows.Scan(&pid, &appKey); err != nil {
+		if err := crows.Scan(&pid); err != nil {
 			crows.Close()
 			return models.ApplyResponse{OK: false, Status: "ERROR", Message: "정원 스캔 오류", ArrivalSeq: seq, ClickedText: clickedText}
 		}
 		countsByProj[pid]++
-		if lateKeys[appKey] {
-			lateGroups[pid] = true
-			appliedLate[appKey] = true
-		}
 	}
 	crows.Close()
 
-	unappliedLateCount := len(lateKeys) - len(appliedLate)
-	effCaps, summary := capacity.ComputeWithLate(settings, countsByProj, lateGroups, unappliedLateCount)
+	effCaps, summary := capacity.Compute(settings, countsByProj)
 	currCount := countsByProj[req.ProjectID]
 	effCap := effCaps[req.ProjectID]
-	if isLateApplicant && effCap < 5 && summary.RemainingTotal > 0 {
-		effCap = 5
-		if currCount+summary.RemainingTotal < effCap {
-			effCap = currCount + summary.RemainingTotal
-		}
-	}
 
 	if summary.RemainingTotal <= 0 {
 		msg := fmt.Sprintf("전체 선착순 정원(%d명)이 모두 마감되었습니다.", settings.TotalQuota)

@@ -9,20 +9,13 @@ const GroupCount = 18
 
 // Compute computes per-group effective capacities and summary for the 18 groups.
 func Compute(settings models.Settings, countsByProject map[int]int) (map[int]int, models.QuotaSummary) {
-	return ComputeWithLate(settings, countsByProject, nil, 0)
+	return compute(settings, countsByProject)
 }
 
-// ComputeWithLate computes per-group effective capacities while guaranteeing that any group
-// containing a latecomer can reach at least 5 members (when highCap >= 5 / totalQuota allows),
-// and reserving 5-member group slots for unapplied latecomers so regular applicants stop at 4
-// in the reserved groups until the latecomers join.
-func ComputeWithLate(settings models.Settings, countsByProject map[int]int, lateGroups map[int]bool, unappliedLateCount int) (map[int]int, models.QuotaSummary) {
+func compute(settings models.Settings, countsByProject map[int]int) (map[int]int, models.QuotaSummary) {
 	totalQuota := settings.TotalQuota
 	if totalQuota < 0 {
 		totalQuota = 0
-	}
-	if unappliedLateCount < 0 {
-		unappliedLateCount = 0
 	}
 
 	var baseCap, highCap, allowedHigh int
@@ -67,20 +60,11 @@ func ComputeWithLate(settings models.Settings, countsByProject map[int]int, late
 
 	totalApplied := 0
 	filledHigh := 0
-	lateGroupCount := 0
-	filledNonLateHigh := 0
 	for id := 1; id <= GroupCount; id++ {
 		c := countsByProject[id]
-		isLate := lateGroups != nil && lateGroups[id]
 		totalApplied += c
-		if isLate {
-			lateGroupCount++
-		}
 		if highCap > baseCap && c >= highCap {
 			filledHigh++
-			if !isLate {
-				filledNonLateHigh++
-			}
 		}
 	}
 
@@ -94,18 +78,12 @@ func ComputeWithLate(settings models.Settings, countsByProject map[int]int, late
 		remHighSlots = 0
 	}
 
-	nonLateAllowedHigh := allowedHigh - lateGroupCount - unappliedLateCount
-	if nonLateAllowedHigh < 0 {
-		nonLateAllowedHigh = 0
-	}
-
 	effCaps := make(map[int]int, GroupCount)
 	openGroups := 0
 	closedGroups := 0
 
 	for id := 1; id <= GroupCount; id++ {
 		c := countsByProject[id]
-		isLate := lateGroups != nil && lateGroups[id]
 		var capVal int
 
 		if remTotal <= 0 {
@@ -122,23 +100,14 @@ func ComputeWithLate(settings models.Settings, countsByProject map[int]int, late
 		} else if c >= highCap {
 			// Already reached the high tier
 			capVal = c
-		} else if isLate {
-			// Any group with a latecomer keeps its 5-member (highCap) guarantee
-			capVal = highCap
-			if capVal < 5 {
-				capVal = 5
-			}
-			if c+remTotal < capVal {
-				capVal = c + remTotal
-			}
-		} else if filledNonLateHigh < nonLateAllowedHigh {
-			// Non-late high-tier slots still available
+		} else if filledHigh < allowedHigh {
+			// High-tier slots are shared by all applicants and allocated by arrival order.
 			capVal = highCap
 			if c+remTotal < capVal {
 				capVal = c + remTotal
 			}
 		} else {
-			// Non-late high-tier quota filled (or reserved for unapplied latecomers)
+			// All high-tier slots are filled.
 			capVal = baseCap
 			if c > capVal {
 				capVal = c

@@ -59,41 +59,29 @@ func TestComputeFixed45AndAutoEven(t *testing.T) {
 	}
 }
 
-func TestLatecomerFiveMemberGuarantee(t *testing.T) {
-	// Total 87 (15 groups of 5, 3 groups of 4), with 3 latecomers
-	settings := models.Settings{TotalQuota: 87, DistributionMode: "auto_even"}
+func TestLatecomersDoNotReceiveReservedFiveMemberSlots(t *testing.T) {
+	settings := models.Settings{TotalQuota: 85, DistributionMode: "auto_even"}
+	counts := map[int]int{14: 4, 15: 3, 16: 2, 17: 1}
+	for id := 1; id <= 13; id++ {
+		counts[id] = 5
+	}
 
-	// Case A: 3 unapplied latecomers -> 12 non-late groups fill to 5, remaining 6 lock at 4 for regulars (total 84 applied, 3 reserved)
-	counts := map[int]int{}
+	caps, summary := Compute(settings, counts)
+	if summary.RemainingHighSlots != 0 {
+		t.Fatalf("remaining high slots = %d, want 0", summary.RemainingHighSlots)
+	}
+	if caps[14] != 4 {
+		t.Fatalf("latecomer group cap = %d, want 4 when no five-member slots remain", caps[14])
+	}
+
+	// Latecomer status must not reserve unused high-tier seats from regular applicants.
+	settings.TotalQuota = 87
+	counts = map[int]int{}
 	for id := 1; id <= 12; id++ {
 		counts[id] = 5
 	}
-	for id := 13; id <= 18; id++ {
-		counts[id] = 4
-	}
-	caps, sum := ComputeWithLate(settings, counts, nil, 3)
-	if sum.RemainingTotal != 3 {
-		t.Fatalf("expected 3 reserved seats remaining, got %d", sum.RemainingTotal)
-	}
-	for id := 13; id <= 18; id++ {
-		if caps[id] != 4 {
-			t.Fatalf("expected non-late group %d locked at 4 while 3 latecomers unapplied, got %d", id, caps[id])
-		}
-	}
-
-	// Case B: Latecomer joins early into group 18 (1 member), while groups 1..12 fill to 5
-	countsEarly := map[int]int{18: 1}
-	for id := 1; id <= 12; id++ {
-		countsEarly[id] = 5
-	}
-	for id := 13; id <= 17; id++ {
-		countsEarly[id] = 4
-	}
-	capsEarly, _ := ComputeWithLate(settings, countsEarly, map[int]bool{18: true}, 2)
-	if capsEarly[18] != 5 {
-		t.Fatalf("expected latecomer group 18 to guarantee capacity 5, got %d", capsEarly[18])
-	}
-	if capsEarly[13] != 4 {
-		t.Fatalf("expected non-late group 13 locked at 4, got %d", capsEarly[13])
+	caps, _ = Compute(settings, counts)
+	if caps[13] != 5 {
+		t.Fatalf("regular group cap = %d, want 5 when global high-tier slots remain", caps[13])
 	}
 }
