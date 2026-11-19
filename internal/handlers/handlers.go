@@ -47,7 +47,6 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /healthz", s.handleHealthz)
 	mux.HandleFunc("GET /static/", s.handleStatic)
 	mux.HandleFunc("GET /api/state", s.handleState)
-	mux.HandleFunc("GET /api/challengers", s.handleChallengers)
 	mux.HandleFunc("GET /api/stream", s.handleStream)
 	mux.HandleFunc("POST /api/apply", s.handleApply)
 	mux.HandleFunc("POST /api/cancel", s.handleCancel)
@@ -143,15 +142,6 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, state)
-}
-
-func (s *Server) handleChallengers(w http.ResponseWriter, r *http.Request) {
-	list, err := s.Store.ListChallengers(r.Context())
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		return
-	}
-	writeJSON(w, http.StatusOK, list)
 }
 
 func (s *Server) handleApply(w http.ResponseWriter, r *http.Request) {

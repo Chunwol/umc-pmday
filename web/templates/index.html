@@ -259,7 +259,7 @@
             내 신청 정보 입력 <span class="text-xs font-normal text-slate-500">(오픈 전 미리 작성해 두면 정각에 원클릭 신청 가능)</span>
           </h2>
         </div>
-        <span class="text-[11px] text-slate-500">닉네임 입력 시 설문 명단 자동완성 · 중복 신청 차단</span>
+        <span class="text-[11px] text-slate-500">신청 정보 직접 입력 · 중복 신청 차단</span>
       </div>
 
       <div class="mt-3.5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -267,7 +267,6 @@
           <label class="block text-xs font-semibold text-slate-700 mb-1">닉네임 <span class="text-rose-500">*</span></label>
           <input id="inputNickname" type="text" autocomplete="off" placeholder="닉네임 입력"
             class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-          <div id="autocompleteBox" class="hidden absolute left-0 right-0 top-full z-40 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl divide-y divide-slate-100"></div>
         </div>
 
         <div>
@@ -427,7 +426,6 @@
             <label class="block text-xs font-semibold text-slate-700 mb-1">닉네임 <span class="text-rose-500">*</span></label>
             <input id="modalInputNickname" type="text" autocomplete="off" placeholder="닉네임 입력"
               class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-            <div id="modalAutocompleteBox" class="hidden absolute left-0 right-0 top-full z-40 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl divide-y divide-slate-100"></div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">이름 <span class="text-rose-500">*</span></label>
@@ -670,7 +668,6 @@
     }
 
     let appState = null;
-    let challengers = [];
     let serverOffsetMs = 0;
     let currentTab = 'groups';
     let currentFilter = 'all';
@@ -707,7 +704,6 @@
     const elName = document.getElementById('inputName');
     const elSchool = document.getElementById('inputSchool');
     const elPhone = document.getElementById('inputPhone');
-    const elAutoBox = document.getElementById('autocompleteBox');
 
     function escapeHtml(str) {
       return String(str ?? '')
@@ -771,10 +767,6 @@
 
     elNick.addEventListener('input', () => {
       saveForm();
-      showAutocomplete(elNick.value);
-    });
-    elNick.addEventListener('focus', () => {
-      if (elNick.value.trim()) showAutocomplete(elNick.value);
     });
     elName.addEventListener('input', saveForm);
     elSchool.addEventListener('input', saveForm);
@@ -782,51 +774,6 @@
       elPhone.value = formatPhone(elPhone.value);
       saveForm();
     });
-
-    document.addEventListener('click', (e) => {
-      if (!elAutoBox.contains(e.target) && e.target !== elNick) {
-        elAutoBox.classList.add('hidden');
-      }
-    });
-
-    function showAutocomplete(query) {
-      const q = query.trim().toLowerCase();
-      if (!q || challengers.length === 0) {
-        elAutoBox.classList.add('hidden');
-        return;
-      }
-      const matches = challengers.filter(c =>
-        c.nickname.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
-      ).slice(0, 8);
-      if (matches.length === 0) {
-        elAutoBox.classList.add('hidden');
-        return;
-      }
-      elAutoBox.innerHTML = matches.map((c, idx) => `
-        <button type="button" onclick="pickChallenger(${c.id})"
-          class="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center justify-between gap-2 transition-colors">
-          <div>
-            <div class="text-xs font-bold text-slate-900">${escapeHtml(c.nickname)} <span class="font-medium text-slate-500">(${escapeHtml(c.name)})</span></div>
-            <div class="text-[11px] text-slate-500">${escapeHtml(c.school)} · ${escapeHtml(c.part)}</div>
-          </div>
-          <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.attendance === '불참' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-700'}">${escapeHtml(c.attendance)}</span>
-        </button>
-      `).join('');
-      elAutoBox.classList.remove('hidden');
-    }
-
-    function pickChallenger(id) {
-      const c = challengers.find(x => x.id === id);
-      if (!c) return;
-      elNick.value = c.nickname;
-      elName.value = c.name;
-      elSchool.value = c.school;
-      elPhone.value = c.phone;
-      setPart(c.part, false);
-      elAutoBox.classList.add('hidden');
-      saveForm();
-      showToast(`${c.nickname}(${c.name})님의 정보가 자동 입력되었습니다.`, 'info');
-    }
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
@@ -1244,57 +1191,9 @@
     const elModalName = document.getElementById('modalInputName');
     const elModalSchool = document.getElementById('modalInputSchool');
     const elModalPhone = document.getElementById('modalInputPhone');
-    const elModalAutoBox = document.getElementById('modalAutocompleteBox');
-
-    elModalNick.addEventListener('input', () => showModalAutocomplete(elModalNick.value));
-    elModalNick.addEventListener('focus', () => {
-      if (elModalNick.value.trim()) showModalAutocomplete(elModalNick.value);
-    });
     elModalPhone.addEventListener('input', () => {
       elModalPhone.value = formatPhone(elModalPhone.value);
     });
-    document.addEventListener('click', (e) => {
-      if (!elModalAutoBox.contains(e.target) && e.target !== elModalNick) {
-        elModalAutoBox.classList.add('hidden');
-      }
-    });
-
-    function showModalAutocomplete(query) {
-      const q = query.trim().toLowerCase();
-      if (!q || challengers.length === 0) {
-        elModalAutoBox.classList.add('hidden');
-        return;
-      }
-      const matches = challengers.filter(c =>
-        c.nickname.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
-      ).slice(0, 8);
-      if (matches.length === 0) {
-        elModalAutoBox.classList.add('hidden');
-        return;
-      }
-      elModalAutoBox.innerHTML = matches.map(c => `
-        <button type="button" onclick="pickModalChallenger(${c.id})"
-          class="w-full px-3 py-2 text-left hover:bg-emerald-50 flex items-center justify-between gap-2 transition-colors">
-          <div>
-            <div class="text-xs font-bold text-slate-900">${escapeHtml(c.nickname)} <span class="font-medium text-slate-500">(${escapeHtml(c.name)})</span></div>
-            <div class="text-[11px] text-slate-500">${escapeHtml(c.school)} · ${escapeHtml(c.part)}</div>
-          </div>
-          <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.attendance === '불참' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-700'}">${escapeHtml(c.attendance)}</span>
-        </button>
-      `).join('');
-      elModalAutoBox.classList.remove('hidden');
-    }
-
-    function pickModalChallenger(id) {
-      const c = challengers.find(x => x.id === id);
-      if (!c) return;
-      elModalNick.value = c.nickname;
-      elModalName.value = c.name;
-      elModalSchool.value = c.school;
-      elModalPhone.value = c.phone;
-      setModalPart(c.part);
-      elModalAutoBox.classList.add('hidden');
-    }
 
     function setModalPart(part) {
       modalSelectedPart = part;
@@ -1322,7 +1221,6 @@
       elModalSchool.value = elSchool.value.trim();
       elModalPhone.value = elPhone.value.trim();
       setModalPart(selectedPart);
-      elModalAutoBox.classList.add('hidden');
       const errEl = document.getElementById('applyModalError');
       errEl.textContent = '';
       errEl.classList.add('hidden');
@@ -1336,7 +1234,6 @@
 
     function closeApplyModal() {
       pendingApplyProjectId = null;
-      elModalAutoBox.classList.add('hidden');
       document.getElementById('applyModal').classList.add('hidden');
     }
 
@@ -1612,11 +1509,7 @@
 
     async function boot() {
       loadSavedForm();
-      const [stateRes, chalRes] = await Promise.all([
-        fetch('/api/state'),
-        fetch('/api/challengers'),
-      ]);
-      challengers = await chalRes.json();
+      const stateRes = await fetch('/api/state');
       const initialState = await stateRes.json();
       applyState(initialState);
 

@@ -27,16 +27,12 @@ def req_json(path, method="GET", body=None):
     status, raw = req_raw(path, method, body)
     return status, json.loads(raw.decode("utf-8"))
 
-# 1. Check initial state, challengers (91 active PE: Web 60 + Mobile 31), and clean HTML
+# 1. Check initial state, that the participant roster is not public, and clean HTML
 code, state = req_json("/api/state")
 assert code == 200 and len(state["projects"]) == 18, f"Expected 18 projects, got {code}"
-code, chals = req_json("/api/challengers")
-assert code == 200 and len(chals) == 91, f"Expected 91 active PE challengers, got {len(chals)}"
-web_cnt = sum(1 for c in chals if c["part"] == "PE(WEB)")
-mob_cnt = sum(1 for c in chals if c["part"] == "PE(Mobile)")
-assert web_cnt == 60 and mob_cnt == 31, f"Expected Web=60, Mobile=31, got {web_cnt}, {mob_cnt}"
-assert all("(" not in c["nickname"] for c in chals), "Found unexpected nickname suffix"
-print(f"[PASS] State OK: 18 projects, {len(chals)} active PE challengers (Web {web_cnt} + Mobile {mob_cnt})")
+code, _ = req_raw("/api/challengers")
+assert code == 404, f"Expected removed public participant roster endpoint, got {code}"
+print("[PASS] State OK: 18 projects; public participant roster endpoint is removed")
 
 code, html_bytes = req_raw("/")
 html = html_bytes.decode("utf-8")
@@ -45,6 +41,8 @@ for forbidden in ("⚙️", "⚡", "📋", "⏸", "✅", "⚠️", "ℹ️", ADM
     assert forbidden not in html, f"Forbidden string still in HTML: {forbidden}"
 for required in ('id="applyModal"', 'id="cancelModal"', 'id="adminLockView"', 'id="adminTabBar"'):
     assert required in html, f"Missing required element in HTML: {required}"
+for forbidden in ('autocompleteBox', 'modalAutocompleteBox', 'showAutocomplete', 'showModalAutocomplete', 'fetch(\'/api/challengers\')'):
+    assert forbidden not in html, f"Participant autocomplete still present in HTML: {forbidden}"
 print("[PASS] HTML clean: no emojis, no leaked password, no PM·Design/duplicate-nick text, apply/cancel modals present")
 
 # 2. Check admin auth & admin-only CSV export
@@ -149,37 +147,7 @@ print(f"[PASS] 100-concurrent burst OK: total_applied={final_state['summary']['t
 assert success_cnt == 77 and final_state["summary"]["total_applied"] == 77
 assert five_groups == 5 and four_groups == 13
 
-# 7. Test that latecomers do not receive reserved seats when regular applicants fill the quota
-req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})
-req_json("/api/admin/settings", "POST", {
-    "pin": ADMIN_PIN,
-    "total_quota": 85,
-    "distribution_mode": "auto_even",
-    "open_offset_sec": -1,
-    "is_paused": False,
-})
-
-late_chals = [c for c in chals if c["attendance"] == "늦참"]
-assert len(late_chals) == 3, f"Expected 3 latecomers, got {len(late_chals)}"
-for idx in range(85):
-    gid = (idx % 18) + 1
-    _, result = req_json("/api/apply", "POST", {
-        "project_id": gid, "nickname": f"정시{idx+1:03d}", "name": f"정시{idx+1:03d}",
-        "school": "동양미래대", "phone": f"010-8000-{idx+1:04d}", "part": "PE(WEB)",
-    })
-    assert result["ok"], f"Regular applicant {idx+1} was blocked before the global quota filled: {result}"
-
-_, full_state = req_json("/api/state")
-assert full_state["summary"]["total_applied"] == 85
-for idx, c in enumerate(late_chals):
-    _, late_result = req_json("/api/apply", "POST", {
-        "project_id": idx + 1, "nickname": c["nickname"], "name": c["name"],
-        "school": c["school"], "phone": c["phone"], "part": c["part"],
-    })
-    assert not late_result["ok"] and late_result["status"] == "FULL", f"Latecomer should not exceed global quota: {late_result}"
-print("[PASS] 85 regular applicants use the quota without latecomer-reserved seats; later applicants are blocked")
-
-# 8. Restore clean production defaults (total_quota=87, open now, 0 test applications)
+# 7. Restore clean production defaults (total_quota=87, open now, 0 test applications)
 req_json("/api/admin/reset", "POST", {"pin": ADMIN_PIN})
 req_json("/api/admin/settings", "POST", {
     "pin": ADMIN_PIN,
